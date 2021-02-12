@@ -42,7 +42,7 @@ add_year_from_session <- function(d) {
     d %>%
       dplyr::mutate(year = floor(session / 100))
   } else {
-    stop("Varable 'session' not found")
+    stop("Variable 'session' not found")
   }
 }
 
@@ -58,15 +58,11 @@ add_year_from_session <- function(d) {
 #'
 #' @export add_year_from_offering
 add_year_from_offering <- function(d) {
-  if ("offering" %in% names(d)) {
-    d %>%
-      dplyr::mutate(year = offering %>%
-                      stringr::str_remove("^.{7}") %>%
-                      stringr::str_extract(".{4}") %>%
-                      as.numeric())
-  } else {
-    stop("Varable 'offering' not found")
-  }
+  d %>%
+    dplyr::mutate(year = offering %>%
+                    stringr::str_remove("^\\w*?_") %>%
+                    stringr::str_extract("^.{4}") %>%
+                    as.numeric())
 }
 
 #' add subject from offering
@@ -85,10 +81,11 @@ add_subject_from_offering <- function(d) {
     d %>%
       dplyr::mutate(
         subject = offering %>%
-          stringr::str_extract("^.{6}")
+          stringr::str_extract("^\\w*?_") %>%
+          stringr::str_remove("_")
       )
   } else {
-    stop("Varable 'offering' not found")
+    stop("Variable 'offering' not found")
   }
 }
 
@@ -108,11 +105,11 @@ add_session_from_offering <- function(d) {
     d %>%
       dplyr::mutate(
         session = offering %>%
-          stringr::str_remove("^.{7}") %>%
-          stringr::str_extract("^.{6}") %>%
+          stringr::str_remove("^\\w*?_") %>%
+          stringr::str_extract("^[:digit:]{6}") %>%
           as.numeric()
       )
   } else {
-    stop("Varable 'offering' not found")
+    stop("Variable 'offering' not found")
   }
 }
