@@ -28,9 +28,9 @@ str_c_sentence_list <- function(s) {
 
 #' add year from session
 #'
-#' Takes a data frame with **session** variable and returns the
-#' same data frame with a **year** variable. Requires the **session**
-#' to be in the format *201930*
+#' Takes a data frame with \strong{session} variable and returns the
+#' same data frame with a \strong{year} variable. Requires the \strong{session}
+#' to be in the format \emph{201930}
 #'
 #' @param d a data frame
 #' @return a data frame
@@ -48,9 +48,9 @@ add_year_from_session <- function(d) {
 
 #' add year from offering
 #'
-#' Takes a data frame with **offering** variable and returns the
-#' same data frame with a **year** variable. Requires the **offering**
-#' to be in the format ABC123_201930_W_D which would return *2019*
+#' Takes a data frame with \strong{offering} variable and returns the
+#' same data frame with a \strong{year} variable. Requires the \strong{offering}
+#' to be in the format ABC123_201930_W_D which would return \emph{2019}
 #'
 #' @param d a data frame
 #' @return a data frame
@@ -67,10 +67,10 @@ add_year_from_offering <- function(d) {
 
 #' add subject from offering
 #'
-#' Takes a data frame with **offering** variable and returns the
-#' same data frame with a **subject** variable. Requires the **offering**
+#' Takes a data frame with \strong{offering} variable and returns the
+#' same data frame with a \strong{subject} variable. Requires the \strong{offering}
 #' to be in the format ABC123_201930_W_D, which would then return
-#' *ABC123* as the subject.
+#' \emph{ABC123} as the subject.
 #'
 #' @param d a data frame
 #' @return a data frame
@@ -91,10 +91,10 @@ add_subject_from_offering <- function(d) {
 
 #' add session from offering
 #'
-#' Takes a data frame with **offering** variable and returns the
-#' same data frame with a **session** variable. Requires the **offering**
+#' Takes a data frame with \strong{offering} variable and returns the
+#' same data frame with a \strong{session} variable. Requires the \strong{offering}
 #' to be in the format ABC123_201930_W_D, which would then return
-#' *201930* as the session.
+#' \emph{201930} as the session.
 #'
 #' @param d a data frame
 #' @return a data frame
@@ -112,4 +112,50 @@ add_session_from_offering <- function(d) {
   } else {
     stop("Variable 'offering' not found")
   }
+}
+
+#' add grade finalised
+#'
+#' Takes a data frame with \strong{grade} variable and returns the
+#' same data frame with a \strong{grade_finalised} variable, which is
+#' true if grade is FW, FL, PS, CR, DI or HD; and false otherwise.
+#'
+#' @param d a data frame
+#' @return a data frame
+#'
+#' @export add_grade_finalised
+add_grade_finalised <- function(d) {
+    d %>%
+      dplyr::mutate(
+        grade_finalised = stringr::str_detect(grade, "FW|FL|PS|CR|DI|HD")
+      )
+}
+
+#' Fetches as much student data as possible, preferencing the most recent
+#'
+#' Grabs the most data possible on as many students as possible.
+#' For time dependent data (as in the student_progress table)
+#' it grabs the latest non NA data. Note that this \emph{only} works
+#' if the \code{student_ids}, \code{student_demographics} and \code{student_progress}
+#' tables are loaded, either through the \strong{retention.data} package
+#' or the .rda files.
+#'
+#' @export fetch_students
+fetch_students <- function() {
+  student_ids %>% select(-user_id, -email) %>%
+    full_join(
+      student_demographics %>%
+        select(-firstname, -lastname)
+      , by = "id"
+    ) %>%
+    full_join(
+      student_progress %>%
+        arrange(desc(session), desc(timestamp)) %>%
+        select(-session, -timestamp) %>%
+        group_by(id) %>%
+        summarise(across(everything(), ~.x[!is.na(.x)][1])) %>%
+        ungroup()
+      , by = "id"
+    ) %>%
+    unique()
 }

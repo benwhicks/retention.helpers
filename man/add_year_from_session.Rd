@@ -13,9 +13,9 @@ add_year_from_session(d)
 a data frame
 }
 \description{
-Takes a data frame with **session** variable and returns the
-same data frame with a **year** variable. Requires the **session**
-to be in the format *201930*
+Takes a data frame with \strong{session} variable and returns the
+same data frame with a \strong{year} variable. Requires the \strong{session}
+to be in the format \emph{201930}
 }
 \seealso{
 Other mungers: 

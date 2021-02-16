@@ -46,3 +46,20 @@ test_that("add_session_from_offering works", {
     ))
 })
 
+
+
+test_that("add_grade_finalised works", {
+  expect_equivalent(add_grade_finalised(
+    tibble::tibble(
+      grade = c("WD", "TA", "AW",
+                "PS", "CR", "DI", "HD", "FW", "FL") %>%
+        forcats::fct_relevel("AW", "FW", "FL", "PS", "CR", "DI", "HD")
+    )),
+    tibble::tibble(
+      grade = c("WD", "TA", "AW",
+                "PS", "CR", "DI", "HD", "FW", "FL") %>%
+        forcats::fct_relevel("AW", "FW", "FL", "PS", "CR", "DI", "HD"),
+      session = c(rep(F, 3), rep(T, 6))
+    ))
+})
+

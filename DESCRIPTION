@@ -1,11 +1,10 @@
 Package: retention.helpers
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Munging, visualisation and analysis helper functions
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Author: Ben Hicks
+Maintainer: Ben Hicks <benwhicks@gmail.com>
+Description: Various helper functions designed to be used with the CSU Retention data package.  The data package is not publically availalbe. 
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true

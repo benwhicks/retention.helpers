@@ -13,8 +13,8 @@ add_subject_from_offering(d)
 a data frame
 }
 \description{
-Takes a data frame with **offering** variable and returns the
-same data frame with a **subject** variable. Requires the **offering**
+Takes a data frame with \strong{offering} variable and returns the
+same data frame with a \strong{subject} variable. Requires the \strong{offering}
 to be in the format ABC123_201930_W_D, which would then return
-*ABC123* as the subject.
+\emph{ABC123} as the subject.
 }
