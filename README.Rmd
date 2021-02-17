@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of retention.helpers is to ...
+The goal of retention.helpers is to provide a few functions to help working with the CSU Retention Team's data set, within the R environment.
 
 ## Installation
 
@@ -28,12 +28,168 @@ You can install the development version from [GitHub](https://github.com/) with:
 # install.packages("devtools")
 devtools::install_github("benwhicks/retention.helpers")
 ```
-## Example
 
-This is a basic example which shows you how to solve a common problem:
+You should also have the tidyverse installed and loaded to get the most out of the package:
 
-```{r example}
-library(retention.helpers)
-## basic example code
+``` r
+# install.packages("tidyverse")
+library(tidyverse)
 ```
 
+The best way to interface with the data is through the `retention.data` package. This package is not shared publicly, so you will need to obtain a copy of the R Package itself and build the package yourself. This is done in RStudio using `Ctrl-Shift-B` or by going to the _Build_ pane (usually in the top right along with _Environment_) and selecting _Install and Restart_. 
+
+## Examples
+
+### Loading Data
+
+This package is designed to work _with_ the retention data set. This can be loaded two ways:
+
+You can load from a folder containing the .rda files directly:
+
+``` {r example-loading-data-rda-files, eval = FALSE}
+# ============================================= #
+# Loading via a folder of the .rda files
+# ============================================= #
+library(tidyverse)
+folder_of_rda_files <- file.path('~', 'path', 'to', 'folder') # Change this to where you have them stored
+rda_files <- list.files(folder_of_rda_files, 
+                        pattern = ".rda", 
+                        full.names = TRUE) # This grabs only rda files in folder_of_rda_files
+# Loading the data into your environment
+rda_files %>% 
+  map(load)
+```
+
+Or you can load from the `retention.data` package:
+
+```{r example-loading-data-from-package, eval=FALSE}
+# ============================================= #
+# Loading data via the retention.data package
+# ============================================= #
+library(retention.data)
+```
+
+The benefit of using the package version of the data is that it comes with in built documentation, using R's usual help syntax, `?`.
+
+``` {r example-help, eval = FALSE}
+?student_progress
+```
+
+### Wrangling
+
+``` {r creating-dummy-data, echo = FALSE, message = FALSE, warning = FALSE}
+library(tidyverse)
+student_ids <- tibble(
+  id = c("1", "2A", "3"),
+  user_id = c("egalois", "enoether", "fnightingale"),
+  email = c("egalois@email.com", "enoether@email.com", "fnight@email.com"),
+  firstname = c("Evariste", "Emmy", "Florence"),
+  lastname = c("Galois", "Noether", "Nightingale")
+)
+
+student_demographics <- tibble(
+  id = c("1", "2A", "3"),
+  firstname = c("Evariste", "Emmy", "Florence"),
+  lastname = c("Galois", "Noether", "Nightingale"),
+  yob_approx = c(1811,1882,1820),
+  gender = c("Male", "Female", "Female"),
+  domesticity = rep("Domestic", 3),
+  ses = c("Low SES", "Med SES", "High SES") %>% 
+    fct_relevel("Low SES", "Med SES", "High SES")
+)
+
+student_progress <- tibble(
+  id = c("1", "2A", "2A", "3", "3"),
+  session = c(189030, 189030, 189060, 189030, 181960),
+  course = c(rep("Applied Mathematics", 5)),
+  course_level = c(rep("Undergrad", 5)),
+  campus = c("Paris", "Bavaria", "Bavaria", "Hampshire", "Hampshire"),
+  course_enrolment = rep("Active Student", 5),
+  commencing = c("Commencing", "Commencing", "Not Commencing", "Commencing", "Not Commencing"),
+  attendance_type = c("Distance", rep("On Campus", 4)),
+  progress_rate = c(0.5, 1, 0.8, 1, 1)
+)
+
+academic <- tibble(
+  id = c(rep("1", 4), 
+         rep("2A", 8),
+         rep("3", 8)),
+  session = c(rep(189030, 4), 
+              rep(189030, 3), rep(189060, 5), 
+              rep(189030, 4), rep(189060, 4)),
+  subject = c("MTH100", "MTH110", "MTH120", "PHL100",
+              "MTH100", "MTH110", "MTH120", "MTH105", "MTH115", "MTH125", "PHL105", "MTH302",
+              "MTH100", "MTH110", "MTH120", "PHL100", "MTH105", "MTH115", "MTH125", "PHL105"),
+  grade = c("AW", "CR", "FL", "AW", 
+            "HD", "DI", "DI", "CR", "PS", "DI", "PS", "FW",
+            "PS", "CR", "CR", "CR", "CR", "PS", "DI", "DI") %>% 
+    fct_relevel("AW", "FW", "FL", "PS", "CR", "DI", "HD")
+)
+
+flags <- tibble(
+  id = c("1", "1", "1", "2A"),
+  subject = c("MTH120", "PHL100", NA_character_, "MTH302"),
+  session = c(189030, 189030, 189060, 189060),
+  offering = c("MTH120_189030_P_D", "PHL100_189030_P_D", NA_character_, "MTH302_189060_B_I"),
+  campaign = c("pre census", "pre census", "former fail", "pre census"),
+  week = c(3, 3, 1, 3),
+  concern = c("low activity", "non submission", "prior performance", "non submission")
+)
+```
+
+This package has a handful of functions for common data wrangling-munging-tidying tasks using the retention data. Most involve adding a derived variable from an existing data frame. For example if `offering` is in the data frame (which comes in the form `ABC123_201990_W_D`) then we can extract the subject `ABC123`, session `201990` or year `2019`. 
+
+### Adding variables
+
+``` {r example-adding-variables}
+# creating a data frame with offerings
+library(retention.helpers)
+offs <- tibble(offering = c("MTH120_189030_P_D", "PHL100_189030_P_D"))
+offs
+
+# adding the subject and year
+offs %>% 
+  add_subject_from_offering() %>% 
+  add_year_from_offering()
+```
+
+### Joining 
+
+``` {r example-joining}
+# Joining demographics and academic
+student_demographics %>% 
+  inner_join(academic, by = "id") %>% 
+  head()
+
+# Joining progress and academic and flags
+flags %>% 
+  inner_join(academic, by = c("id", "subject", "session"))
+```
+
+### Visualising
+
+``` {r example-visualising}
+# Trying to visualise grade distributions of flagged vs non flagged
+academic %>% 
+  left_join(
+    flags %>% 
+      filter(campaign == "pre census") %>% # only looking at pre census flags
+      select(id, subject, session) %>% # only selecting what is required for joining with academic
+      mutate(flagged = "At risk"), # left join as we want all academic, which creates NA's if no match
+    by = c("id", "subject", "session")) %>%  
+  mutate(flagged = replace_na(flagged, "Not at risk")) %>% # NA's did not appear in the flag table
+  ggplot(aes(grade)) +
+  stat_count(aes(fill = flagged)) +
+  facet_grid(flagged ~ session) +
+  theme_minimal() 
+```
+
+## Data Model
+
+``` {r data-model, echo = FALSE}
+# TODO: Copy the data_model.yml file across from the retention.data package to the root of this package whenever this is updated.
+library(datamodelr)
+dm <- dm_read_yaml('data_model.yml')
+gp <- dm_create_graph(dm, rankdir = "RL")
+dm_render_graph(gp)
+```
