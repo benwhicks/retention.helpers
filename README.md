@@ -158,4 +158,7 @@ academic %>%
 
 ## Data Model
 
-<img src="man/figures/README-data-model-1.png" width="100%" />
+This is the **intended** end product, but not all tables are complete or
+tidy yet.
+
+![](data-model.png)

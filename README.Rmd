@@ -186,10 +186,14 @@ academic %>%
 
 ## Data Model
 
-``` {r data-model, echo = FALSE}
+This is the **intended** end product, but not all tables are complete or tidy yet.
+
+``` {r data-model, echo = FALSE, message = FALSE}
 # TODO: Copy the data_model.yml file across from the retention.data package to the root of this package whenever this is updated.
 library(datamodelr)
 dm <- dm_read_yaml('data_model.yml')
 gp <- dm_create_graph(dm, rankdir = "RL")
-dm_render_graph(gp)
+dm_export_graph(gp, "data-model.png", height = 1200)
 ```
+
+![](data-model.png)
