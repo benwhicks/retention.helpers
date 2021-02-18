@@ -130,3 +130,7 @@ add_grade_finalised <- function(d) {
         grade_finalised = stringr::str_detect(grade, "FW|FL|PS|CR|DI|HD")
       )
 }
+
+# TODO: Create fct_ style functions that replicate the factor structure in the retention package.
+#       Probably best to steal the levels from the _academic_ table rather than specifying...maybe...but that
+#       creates a dependency

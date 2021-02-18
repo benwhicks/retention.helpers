@@ -34,9 +34,10 @@ fetch_students <- function() {
 #'
 #' Given a course filtering this returns a data table with one row
 #' per student per session with as much demographic, retention and academic
-#' data as possible.
+#' data as possible. By default it only includes flags with the concerns:
+#' \emph{course requirement, low activity, non submission} and \emph{prior performance}
 #'
-#' You \emph{must} have the \strong{retention.data} package loaded for this
+#' You \emph{must} have the \code{retention.data} package loaded for this
 #' to work, or the equivalent tables.
 #'
 #' Some of the calculated fields are worth explaining:
@@ -47,10 +48,15 @@ fetch_students <- function() {
 #' * \strong{fw_rate} is the ratio of FW (fail by non submission) to all grades
 #'
 #' @param course_filter_string A regex expression used to filter on the course
+#' @param concerns A list of options from for the concern field in the flags table. See \code{flags %>% distinct(concern)} for options.
 #' @return a data frame, one row per student per session
 #'
 #' @export fetch_student_summary_from_course
-fetch_student_summary_from_course <- function(course_filter_string = ".") {
+fetch_student_summary_from_course <- function(course_filter_string = ".",
+                                              concerns = c("course requirement",
+                                                           "low activity",
+                                                           "non submission",
+                                                           "prior performance")) {
   stu <- student_progress %>%
     dplyr::filter(
       stringr::str_detect(course, course_filter_string),
@@ -63,16 +69,11 @@ fetch_student_summary_from_course <- function(course_filter_string = ".") {
     add_year_from_session()
 
   fla <- flags %>%
+    dplyr::filter(concern %in% concerns) %>%
     dplyr::inner_join(stu %>% dplyr::distinct(id, session), by = c("id", "session"))
 
-  # con <- contact %>%
-  #   inner_join(stu %>% distinct(id, session), by = c("id", "session"))
-  #
-  # # imputing flags - is this the other issue?? Early low engagement missing??
-  # fla <- fla %>%
-  #   bind_rows(con %>% anti_join(fla, by = c("id", "session")))
-
   aca <- academic %>%
+    dplyr::filter(grade != "TA") %>%
     dplyr::inner_join(stu %>% dplyr::distinct(id, session), by = c("id", "session")) %>%
     dplyr::left_join(
       offerings %>%
@@ -124,3 +125,248 @@ fetch_student_summary_from_course <- function(course_filter_string = ".") {
 
   dat
 }
+
+#' Gets a beefed up table of student data by session based on a list of student ids
+#'
+#' Given a list of student ids this returns a data table with one row
+#' per student per session with as much demographic, retention and academic
+#' data as possible. By default it only includes flags with the concerns:
+#' \emph{course requirement, low activity, non submission} and \emph{prior performance}
+#'
+#' You \emph{must} have the \code{retention.data} package loaded for this
+#' to work, or the equivalent tables.
+#'
+#' Some of the calculated fields are worth explaining:
+#'
+#' * \strong{progress_rate} is the ratio of passing grades (PS, CR, DI, HD) to all grades
+#' * \strong{pass_rate} is the ratio of passing grades to all finalised grades
+#' * \strong{fail_rate} is the ratio of failing grades (FL, FW) to all grades
+#' * \strong{fw_rate} is the ratio of FW (fail by non submission) to all grades
+#'
+#' @param ids A character vector of student ids
+#' @param concerns A list of options from for the concern field in the flags table. See \code{flags %>% distinct(concern)} for options.
+#' @return a data frame, one row per student per session
+#'
+#' @export fetch_student_session_summary_from_ids
+fetch_student_session_summary_from_ids <- function(ids,
+                                              concerns = c("course requirement",
+                                                           "low activity",
+                                                           "non submission",
+                                                           "prior performance")) {
+  stu <- student_progress %>%
+    dplyr::filter(
+      id %in% ids,
+      course_enrolment_status == "Active Student") %>%
+    dplyr::distinct(id, session, course) %>% # fetches anyone who was active at some point in the session
+    dplyr::inner_join(
+      student_demographics %>%
+        dplyr::select(-firstname, -lastname, -postcode, -yob_approx),
+      by = "id") %>%
+    add_year_from_session()
+
+  fla <- flags %>%
+    dplyr::filter(concern %in% concerns) %>%
+    dplyr::inner_join(stu %>% dplyr::distinct(id, session), by = c("id", "session"))
+
+  aca <- academic %>%
+    dplyr::filter(grade != "TA") %>%
+    dplyr::inner_join(stu %>% dplyr::distinct(id, session), by = c("id", "session")) %>%
+    dplyr::left_join(
+      offerings %>%
+        dplyr::group_by(subject, session) %>%
+        dplyr::summarise(heppp = any(pre_census_focus)),
+      by = c("subject", "session")) %>%
+    dplyr::mutate(heppp = tidyr::replace_na(heppp, FALSE))
+
+  aca_summary <- aca %>%
+    dplyr::mutate(
+      pass = stringr::str_detect(grade, "PS|CR|DI|HD"),
+      fail = stringr::str_detect(grade, "FL|FW"),
+      fw = stringr::str_detect(grade, "FW"),
+      finalised = stringr::str_detect(grade, "FW|FL|PS|CR|DI|HD")) %>%
+    dplyr::group_by(id, session) %>%
+    dplyr::summarise(
+      progress_rate = mean(pass, na.rm = T),
+      pass_rate = if_else(sum(finalised) == 0, NA_real_, sum(pass) / sum(finalised)),
+      fail_rate = mean(fail, na.rm = T),
+      fw_rate = mean(fw, na.rm = T),
+      finalised_grades = sum(finalised),
+      grades = paste0(sort(grade), collapse = ", "))
+
+  missed_by_heppp <- aca %>%
+    dplyr::group_by(id, session) %>%
+    dplyr::summarise(any_heppp = any(heppp)) %>%
+    dplyr::filter(!any_heppp) %>%
+    dplyr::mutate(not_watched = "No tracked subjects") %>%
+    dplyr::select(-any_heppp)
+
+  dat <- stu %>%
+    dplyr::left_join(
+      fla %>%
+        group_by(id, session) %>%
+        summarise(concern = str_c(concern, collapse = ", "),
+                  flags = n()) %>%
+        mutate(flagged = "At risk"),
+      by = c("id", "session")) %>%
+    dplyr::mutate(
+      concern = tidyr::replace_na(concern, "not flagged"),
+      flags = tidyr::replace_na(flags, 0),
+      flagged = tidyr::replace_na(flagged, "Not at risk")) %>%
+    dplyr::left_join(
+      missed_by_heppp,
+      by = c("id", "session")) %>%
+    dplyr::mutate(flagged = coalesce(not_watched, flagged)) %>%
+    dplyr::select(-not_watched) %>%
+    dplyr::left_join(aca_summary, by = c("id", "session"))
+
+  dat
+}
+
+#' Gets a beefed up table of student data by subject
+#'
+#' Given a subject filtering this returns a data table with one row
+#' per student per subject per session with as much demographic, retention and academic
+#' data as possible. By default it only includes flags with the concerns:
+#' \emph{course requirement, low activity, non submission} and \emph{prior performance}
+#'
+#' You \emph{must} have the \code{retention.data} package loaded for this
+#' to work, or the equivalent tables.
+#'
+#' @param subject_filter_string A regex expression used to filter on the course
+#' @param concerns A list of options from for the concern field in the flags table. See \code{flags %>% distinct(concern)} for options.
+#' @return a data frame, one row per student per subject per session
+#'
+#' @export fetch_student_summary_from_subject
+fetch_student_summary_from_subject <- function(subject_filter_string = ".",
+                                              concerns = c("course requirement",
+                                                           "low activity",
+                                                           "non submission",
+                                                           "prior performance")) {
+  stu <- enrolments %>%
+    add_subject_from_offering() %>%
+    dplyr::filter(
+      stringr::str_detect(subject, subject_filter_string)) %>%
+    # getting only the latest enrolment activity in the session
+    dplyr::group_by(id, subject, session) %>%
+    dplyr::filter(enrol_date == max(enrol_date)) %>%
+    dplyr::distinct(id, session, subject) %>%
+    dplyr::inner_join(
+      student_demographics %>%
+        dplyr::select(-firstname, -lastname, -postcode, -yob_approx),
+      by = "id") %>%
+    add_year_from_session()
+
+  fla <- flags %>%
+    dplyr::filter(concern %in% concerns) %>%
+    dplyr::inner_join(
+      stu %>%
+        dplyr::distinct(id, session, subject),
+      by = c("id", "session", "subject"))
+
+  aca <- academic %>%
+    dplyr::filter(grade != "TA") %>%
+    dplyr::inner_join(
+      stu %>%
+        dplyr::distinct(id, session, subject),
+      by = c("id", "session", "subject")) %>%
+    dplyr::left_join(
+      offerings %>%
+        dplyr::group_by(subject, session) %>%
+        dplyr::summarise(pre_census_focus = any(pre_census_focus)),
+      by = c("subject", "session")) %>%
+    dplyr::mutate(pre_census_focus = tidyr::replace_na(pre_census_focus, FALSE))
+
+
+  dat <- stu %>%
+    dplyr::left_join(
+      fla %>%
+        group_by(id, session, subject) %>%
+        summarise(concern = str_c(concern, collapse = ", "),
+                  flags = n()) %>%
+        mutate(flagged = "At risk"),
+      by = c("id", "session", "subject")) %>%
+    dplyr::mutate(
+      concern = tidyr::replace_na(concern, "not flagged"),
+      flags = tidyr::replace_na(flags, 0),
+      flagged = tidyr::replace_na(flagged, "Not at risk")) %>%
+    dplyr::left_join(aca, by = c("id", "session", "subject"))
+
+  dat
+}
+
+#' Gets a beefed up table of student data by subject from a list of ids
+#'
+#' Given list of student ids this returns a data table with one row
+#' per student per subject per session with as much demographic, retention and academic
+#' data as possible. By default it only includes flags with the concerns:
+#' \emph{course requirement, low activity, non submission} and \emph{prior performance}
+#'
+#' You \emph{must} have the \code{retention.data} package loaded for this
+#' to work, or the equivalent tables.
+#'
+#' @param ids A character vector of student ids
+#' @param concerns A list of options from for the concern field in the flags table. See \code{flags %>% distinct(concern)} for options.
+#' @return a data frame, one row per student per subject per session
+#'
+fetch_student_subject_summary_from_ids <- function(ids,
+                                              concerns = c("course requirement",
+                                                           "low activity",
+                                                           "non submission",
+                                                           "prior performance")) {
+  # TODO: Need to adjust this to match student id filtering
+  # TODO: Add export
+  stu <- enrolments %>%
+    add_subject_from_offering() %>%
+    dplyr::filter(
+      stringr::str_detect(subject, subject_filter_string)) %>%
+    # getting only the latest enrolment activity in the session
+    dplyr::group_by(id, subject, session) %>%
+    dplyr::filter(enrol_date == max(enrol_date)) %>%
+    dplyr::distinct(id, session, subject) %>%
+    dplyr::inner_join(
+      student_demographics %>%
+        dplyr::select(-firstname, -lastname, -postcode, -yob_approx),
+      by = "id") %>%
+    add_year_from_session()
+
+  fla <- flags %>%
+    dplyr::filter(concern %in% concerns) %>%
+    dplyr::inner_join(
+      stu %>%
+        dplyr::distinct(id, session, subject),
+      by = c("id", "session", "subject"))
+
+  aca <- academic %>%
+    dplyr::filter(grade != "TA") %>%
+    dplyr::inner_join(
+      stu %>%
+        dplyr::distinct(id, session, subject),
+      by = c("id", "session", "subject")) %>%
+    dplyr::left_join(
+      offerings %>%
+        dplyr::group_by(subject, session) %>%
+        dplyr::summarise(pre_census_focus = any(pre_census_focus)),
+      by = c("subject", "session")) %>%
+    dplyr::mutate(pre_census_focus = tidyr::replace_na(pre_census_focus, FALSE))
+
+
+  dat <- stu %>%
+    dplyr::left_join(
+      fla %>%
+        group_by(id, session, subject) %>%
+        summarise(concern = str_c(concern, collapse = ", "),
+                  flags = n()) %>%
+        mutate(flagged = "At risk"),
+      by = c("id", "session", "subject")) %>%
+    dplyr::mutate(
+      concern = tidyr::replace_na(concern, "not flagged"),
+      flags = tidyr::replace_na(flags, 0),
+      flagged = tidyr::replace_na(flagged, "Not at risk")) %>%
+    dplyr::left_join(aca, by = c("id", "session", "subject"))
+
+  dat
+}
+
+# TODO: Document fetch_ functions fully in README and in function help
+
+# TODO: fetch_student_summary_from_offering? (again by session) Could just rejoin subject?
