@@ -130,32 +130,3 @@ add_grade_finalised <- function(d) {
         grade_finalised = stringr::str_detect(grade, "FW|FL|PS|CR|DI|HD")
       )
 }
-
-#' Fetches as much student data as possible, preferencing the most recent
-#'
-#' Grabs the most data possible on as many students as possible.
-#' For time dependent data (as in the student_progress table)
-#' it grabs the latest non NA data. Note that this \emph{only} works
-#' if the \code{student_ids}, \code{student_demographics} and \code{student_progress}
-#' tables are loaded, either through the \strong{retention.data} package
-#' or the .rda files.
-#'
-#' @export fetch_students
-fetch_students <- function() {
-  student_ids %>% select(-user_id, -email) %>%
-    full_join(
-      student_demographics %>%
-        select(-firstname, -lastname)
-      , by = "id"
-    ) %>%
-    full_join(
-      student_progress %>%
-        arrange(desc(session), desc(timestamp)) %>%
-        select(-session, -timestamp) %>%
-        group_by(id) %>%
-        summarise(across(everything(), ~.x[!is.na(.x)][1])) %>%
-        ungroup()
-      , by = "id"
-    ) %>%
-    unique()
-}
