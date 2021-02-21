@@ -35,20 +35,17 @@ fetch_students <- function() {
 #' Given a course filtering this returns a data table with one row
 #' per student per session with as much demographic, retention and academic
 #' data as possible. By default it only includes flags with the concerns:
-#' \emph{course requirement, low activity, non submission} and \emph{prior performance}
-#'
+#' \emph{course requirement, low activity, non submission} and \emph{prior performance}.
 #' You \emph{must} have the \code{retention.data} package loaded for this
 #' to work, or the equivalent tables.
-#'
 #' Some of the calculated fields are worth explaining:
-#'
 #' * \strong{progress_rate} is the ratio of passing grades (PS, CR, DI, HD) to all grades
 #' * \strong{pass_rate} is the ratio of passing grades to all finalised grades
 #' * \strong{fail_rate} is the ratio of failing grades (FL, FW) to all grades
 #' * \strong{fw_rate} is the ratio of FW (fail by non submission) to all grades
 #'
 #' @param course_filter_string A regex expression used to filter on the course
-#' @param concerns A list of options from for the concern field in the flags table. See \code{flags %>% distinct(concern)} for options.
+#' @param concerns A list of options from for the concern field in the flags table.
 #' @return a data frame, one row per student per session
 #'
 #' @export fetch_student_summary_from_course
@@ -144,7 +141,7 @@ fetch_student_summary_from_course <- function(course_filter_string = ".",
 #' * \strong{fw_rate} is the ratio of FW (fail by non submission) to all grades
 #'
 #' @param ids A character vector of student ids
-#' @param concerns A list of options from for the concern field in the flags table. See \code{flags %>% distinct(concern)} for options.
+#' @param concerns A list of options from for the concern field in the flags table.
 #' @return a data frame, one row per student per session
 #'
 #' @export fetch_student_session_summary_from_ids
@@ -233,7 +230,7 @@ fetch_student_session_summary_from_ids <- function(ids,
 #' to work, or the equivalent tables.
 #'
 #' @param subject_filter_string A regex expression used to filter on the course
-#' @param concerns A list of options from for the concern field in the flags table. See \code{flags %>% distinct(concern)} for options.
+#' @param concerns A list of options from for the concern field in the flags table.
 #' @return a data frame, one row per student per subject per session
 #'
 #' @export fetch_student_summary_from_subject
@@ -305,7 +302,7 @@ fetch_student_summary_from_subject <- function(subject_filter_string = ".",
 #' to work, or the equivalent tables.
 #'
 #' @param ids A character vector of student ids
-#' @param concerns A list of options from for the concern field in the flags table. See \code{flags %>% distinct(concern)} for options.
+#' @param concerns A list of options from for the concern field in the flags table.
 #' @return a data frame, one row per student per subject per session
 #'
 fetch_student_subject_summary_from_ids <- function(ids,
@@ -365,6 +362,67 @@ fetch_student_subject_summary_from_ids <- function(ids,
     dplyr::left_join(aca, by = c("id", "session", "subject"))
 
   dat
+}
+
+#' Gets a overall demographic summary by subject
+#'
+#' Returns a summary of basic key demographics breakdown based on
+#' a selection of subjects. Currently the key demographics selected by
+#' this function are Low SES, Australian Indigenous, Regional and First in Family
+#'
+#' @param subject_string a regex expression used to filter the subjects
+#' @param by_session if TRUE then returns one row per subject per session
+#' @param sessions a numeric vector with the sessions that the data should be based on, greedy if left as NULL
+#' @param include_withdrawn if set to FALSE then students that withdraw are removed from the results
+#' @param domestic_only if TRUE then only domestic enrolments are used
+#' @return a data frame, one row per subject (and per session if by session is TRUE)
+#' @export fetch_subject_demograpic_summary
+fetch_subject_demographic_summary <- function(subject_string,
+                                              by_session = TRUE,
+                                              sessions = NULL,
+                                              include_withdrawn = FALSE,
+                                              domestic_only = TRUE) {
+  stu_dat <- enrolments %>%
+    add_subject_from_offering() %>%
+    dplyr::filter(
+      stringr::str_detect(subject, subject_string),
+      ifelse(is.null(sessions), TRUE, session %in% sessions),
+      ifelse(include_withdrawn, TRUE, is.na(withdraw_date))
+      ) %>%
+    dplyr::distinct(id, subject, session) %>%
+    dplyr::inner_join(
+      student_demographics %>%
+        dplyr::select(id, domesticity, atsi, nesb, ses, remoteness, parental_education) %>%
+        dplyr::filter(ifelse(domestic_only, domesticity == "Domestic", TRUE)),
+      by = "id")
+
+  if (by_session) {
+    grp_dat <- stu_dat %>%
+      dplyr::group_by(subject, session)
+  } else {
+    grp_dat <- stu_dat %>%
+      dplyr::group_by(subject)
+  }
+
+   grp_dat %>%
+    dplyr::summarise(
+      low_ses = sum(ses == "Low SES"),
+      low_ses_pc =
+        sum(ses == "Low SES") /
+        sum(stringr::str_detect(ses, "SES")),
+      indigenous = sum(atsi == "Australian Indigenous"),
+      indigenous_pc =
+        sum(atsi == "Australian Indigenous") /
+        sum(stringr::str_detect(atsi, "Indigenous")),
+      regional = sum(stringr::str_detect(remoteness, "Regional|Remote")),
+      regional_pc =
+        sum(stringr::str_detect(remoteness, "Regional|Remote")) /
+        sum(stringr::str_detect(remoteness, "Regional|Remote|Major")),
+      first_in_family = sum(parental_education == "Not University Level"),
+      first_in_family_pc =
+        sum(parental_education == "Not University Level") /
+        sum(stringr::str_detect(parental_education, "University"))
+    )
 }
 
 # TODO: Document fetch_ functions fully in README and in function help

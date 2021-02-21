@@ -12,6 +12,8 @@ fetch_student_subject_summary_from_ids(
 }
 \arguments{
 \item{ids}{A character vector of student ids}
+
+\item{concerns}{A list of options from for the concern field in the flags table.}
 }
 \value{
 a data frame, one row per student per subject per session

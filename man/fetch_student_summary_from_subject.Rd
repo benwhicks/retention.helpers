@@ -12,6 +12,8 @@ fetch_student_summary_from_subject(
 }
 \arguments{
 \item{subject_filter_string}{A regex expression used to filter on the course}
+
+\item{concerns}{A list of options from for the concern field in the flags table.}
 }
 \value{
 a data frame, one row per student per subject per session
