@@ -22,6 +22,13 @@
 #'                         session = c(202030, 202060))
 #' subject_and_session %>%
 #'   affix_demographics()
+#'
+#' course_campus <- tibble(
+#'    course = c("Bachelor of Occupational Therapy", "Bachelor of Occupational Therapy"),
+#'    campus = c("Port Macquarie", "Albury-Wodonga"))
+#'
+#' course_campus %>%
+#'   affix_demographics()
 affix_demographics <- function(d) {
   d %>%
     dplyr::inner_join(
@@ -29,7 +36,18 @@ affix_demographics <- function(d) {
         enrolments %>%
           dplyr::filter(is.na(withdraw_date)) %>%
           add_subject_from_offering() %>%
-          dplyr::select(id, session, subject, offering),
+          dplyr::select(id, session, subject, offering) %>%
+          dplyr::left_join(
+            subjects,
+            by = "subject") %>%
+          dplyr::left_join(
+            student_progress %>%
+              group_by(id, session) %>%
+              filter(timestamp == max(timestamp)) %>%
+              ungroup() %>%
+              select(id, session, course, course_faculty, course_level, commencing, campus),
+            by = c("id", "session"))
+          ,
         student_demographics %>%
           dplyr::select(id, domesticity, atsi, parental_education, ses, remoteness),
         by = "id")
@@ -41,8 +59,8 @@ affix_demographics <- function(d) {
       domestic_p =
         sum(domesticity == "Domestic") /
         sum(domesticity != "Unknown"),
-      australian_indigenous = sum(atsi == "Australian Indigenous"),
-      australian_indigenous_p =
+      first_nations = sum(atsi == "Australian Indigenous"),
+      first_nations_p =
         sum(atsi == "Australian Indigenous") /
         sum(stringr::str_detect(atsi, "Australian")),
       low_ses = sum(ses == "Low SES"),
@@ -79,43 +97,6 @@ affix_demographics <- function(d) {
 #'                         session = c(202030, 202060))
 #' subject_and_session %>%
 #'   affix_academic()
-affix_academic <- function(d) {
-  d %>%
-    dplyr::inner_join(
-      dplyr::inner_join(
-        enrolments %>%
-          dplyr::filter(is.na(withdraw_date)) %>%
-          add_subject_from_offering() %>%
-          dplyr::select(id, session, subject, offering),
-        student_demographics %>%
-          dplyr::select(id, domesticity, atsi, parental_education, ses, remoteness),
-        by = "id")
-    ) %>%
-    dplyr::group_by(dplyr::across(dplyr::all_of(names(d)))) %>%
-    dplyr::summarise(
-      n = dplyr::n(),
-      domestic = sum(domesticity == "Domestic"),
-      domestic_p =
-        sum(domesticity == "Domestic") /
-        sum(domesticity != "Unknown"),
-      australian_indigenous = sum(atsi == "Australian Indigenous"),
-      australian_indigenous_p =
-        sum(atsi == "Australian Indigenous") /
-        sum(stringr::str_detect(atsi, "Australian")),
-      low_ses = sum(ses == "Low SES"),
-      low_ses_p =
-        sum(ses == "Low SES") /
-        sum(stringr::str_detect(ses, "SES")),
-      regional_or_remote = sum(stringr::str_detect(remoteness, "Regional|Remote")),
-      regional_or_remote_p =
-        sum(stringr::str_detect(remoteness, "Regional|Remote")) /
-        sum(stringr::str_detect(remoteness, "Regional|Remote|Cities")),
-      parents_no_uni = sum(parental_education == "Not University Level"),
-      parents_no_uni_p =
-        sum(parental_education == "Not University Level") /
-        sum(stringr::str_detect(parental_education, "University"))
-    )
-}
 
 # TODO: affix_flags
 
