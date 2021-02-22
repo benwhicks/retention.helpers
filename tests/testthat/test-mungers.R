@@ -59,7 +59,27 @@ test_that("add_grade_finalised works", {
       grade = c("WD", "TA", "AW",
                 "PS", "CR", "DI", "HD", "FW", "FL") %>%
         forcats::fct_relevel("AW", "FW", "FL", "PS", "CR", "DI", "HD"),
-      session = c(rep(F, 3), rep(T, 6))
+      grade_finalised = c(rep(F, 3), rep(T, 6))
     ))
+})
+
+test_that("add_grade_helpers works", {
+  expect_equivalent(add_grade_helpers(
+    tibble::tibble(
+      grade = c("WD", "TA", "AW",
+                "FW", "FL",
+                "PS", "CR", "DI", "HD") %>%
+        forcats::fct_relevel("AW", "FW", "FL", "PS", "CR", "DI", "HD"))
+    ),
+    tibble::tibble(
+      grade = c("WD", "TA", "AW",
+                "FW", "FL",
+                "PS", "CR", "DI", "HD") %>%
+        forcats::fct_relevel("AW", "FW", "FL", "PS", "CR", "DI", "HD"),
+      grade_finalised = c(rep(F, 3), rep(T, 6)),
+      grade_pass = c(rep(F, 5), rep(T, 4)),
+      grade_fail = c(rep(F, 3), T, T, rep(F, 4)),
+      grade_fw = c(rep(F, 3), T, rep(F, 5)))
+    )
 })
 

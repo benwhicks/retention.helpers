@@ -131,6 +131,79 @@ add_grade_finalised <- function(d) {
       )
 }
 
+#' add grade pass
+#'
+#' Takes a data frame with \strong{grade} variable and returns the
+#' same data frame with a \strong{grade_pass} variable, which is
+#' true if grade is PS, CR, DI or HD; and false otherwise.
+#'
+#' @param d a data frame
+#' @return a data frame
+#'
+#' @export add_grade_pass
+add_grade_pass <- function(d) {
+  d %>%
+    dplyr::mutate(
+      grade_pass = stringr::str_detect(grade, "PS|CR|DI|HD")
+    )
+}
+
+#' add grade fail
+#'
+#' Takes a data frame with \strong{grade} variable and returns the
+#' same data frame with a \strong{grade_fail} variable, which is
+#' true if grade is FW, FL; and false otherwise.
+#'
+#' @param d a data frame
+#' @return a data frame
+#'
+#' @export add_grade_fail
+add_grade_fail <- function(d) {
+  d %>%
+    dplyr::mutate(
+      grade_fail = stringr::str_detect(grade, "FW|FL")
+    )
+}
+
+
+#' add grade fail
+#'
+#' Takes a data frame with \strong{grade} variable and returns the
+#' same data frame with a \strong{grade_fw} variable, which is
+#' true if grade is FW, FL; and false otherwise.
+#'
+#' @param d a data frame
+#' @return a data frame
+#'
+#' @export add_grade_fail
+add_grade_fw <- function(d) {
+  d %>%
+    dplyr::mutate(
+      grade_fw = stringr::str_detect(grade, "FW")
+    )
+}
+
+
+#' add grade helpers
+#'
+#' Takes a data frame with \strong{grade} variable and returns the
+#' same data frame with a series of grade_* variables to assist in
+#' analysing grade data.
+#'
+#' @param d a data frame
+#' @return a data frame
+#'
+#' @export add_grade_helpers
+add_grade_helpers <- function(d) {
+  d %>%
+    add_grade_finalised() %>%
+    add_grade_pass() %>%
+    add_grade_fail() %>%
+    add_grade_fw()
+}
+
+
 # TODO: Create fct_ style functions that replicate the factor structure in the retention package.
 #       Probably best to steal the levels from the _academic_ table rather than specifying...maybe...but that
 #       creates a dependency
+

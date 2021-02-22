@@ -376,7 +376,7 @@ fetch_student_subject_summary_from_ids <- function(ids,
 #' @param include_withdrawn if set to FALSE then students that withdraw are removed from the results
 #' @param domestic_only if TRUE then only domestic enrolments are used
 #' @return a data frame, one row per subject (and per session if by session is TRUE)
-#' @export fetch_subject_demograpic_summary
+#' @export fetch_subject_demographic_summary
 fetch_subject_demographic_summary <- function(subject_string,
                                               by_session = TRUE,
                                               sessions = NULL,
