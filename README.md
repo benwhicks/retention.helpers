@@ -35,6 +35,31 @@ done in RStudio using `Ctrl-Shift-B` or by going to the *Build* pane
 (usually in the top right along with *Environment*) and selecting
 *Install and Restart*.
 
+## Overview of functions
+
+Most of the functions are split into groups based on their use and
+prefix. The main families are `add_`, `affix_`, and `fetct_.`
+
+The `add_` family of functions create new columns in a data frame based
+on data *in that table only*. This means they are the most broadly
+useful as the do not require `retention.data` loaded. For example if
+`offering` is in the data frame (in the form `ABC123_201990_W_D`) then
+we can extract the subject `ABC123`, session `201990` or year `2019`.
+
+The `affix_` family of functions create new columns in a data frame that
+are aggregations of the data loaded, based on the groupings in the input
+data frame. For instance if you feed `affix_demographics` a data frame
+consisting of *subject* and *session*, it will aggregate by subject and
+session and append a variety of demogrpahic measures to the data frame.
+
+The `fetch_` family of functions create a new data frame by joining and
+wrangling the existing data. These a tables that could just be stored as
+part of the data package but are redundant. For example,
+`fetch_students` combines the `student_demographics` and
+`student_progess` tables into a larger table, attempting to get the most
+recent relavent data for each student (this is because
+`student_progress` is tied to a given session).
+
 ## Examples
 
 ### Loading Data
@@ -75,13 +100,6 @@ with in built documentation, using R’s usual help syntax, `?`.
 ```
 
 ### Wrangling
-
-This package has a handful of functions for common data
-wrangling-munging-tidying tasks using the retention data. Most involve
-adding a derived variable from an existing data frame. For example if
-`offering` is in the data frame (which comes in the form
-`ABC123_201990_W_D`) then we can extract the subject `ABC123`, session
-`201990` or year `2019`.
 
 ### Adding variables
 
