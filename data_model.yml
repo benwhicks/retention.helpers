@@ -18,9 +18,9 @@
   segment: *ld
   columns:
     subject: {key: yes}
-    faculty: 
+    faculty:
     school:
-    
+
 - table: offerings
   segment: *ld
   columns:
@@ -28,11 +28,11 @@
     subject: {ref: subjects} # 6 character code
     session: {ref: sessions}
     subject_site_code:
-    pre_census_focus: 
+    pre_census_focus:
     post_census_focus:
     academic:
     email_academic:
-    
+
 
 - table: triggers
   segment: *ld
@@ -61,7 +61,7 @@
     week: {}
     concern_detail: {} # Extra info, such as number of days used for low activity
     reason_for_no_upload: {} # If the student was not forwarded to the outreach team, why.
-    
+
 
 - table: student_id
   segment: *sd
@@ -72,9 +72,9 @@
     email: {} # student email, possibly from DDA users table
     firstname:
     lastname:
-    
-    
-- table: student_demographics # one row per 
+
+
+- table: student_demographics # one row per
   segment: *sd
   columns:
     id: {key: yes, ref: student_id} # might replace with pidm at some point
@@ -92,7 +92,7 @@
     disability_support_status:
     remoteness: {} # Does this change??
     postcode: {} # get latest, or min? or max?
-    
+
 - table: student_progress
   segment: *sd
   columns:
@@ -103,23 +103,25 @@
     course_faculty:
     course_level:
     campus: # to add
-    course_enrolment_status:    
+    course_enrolment_status:
     commencing:
     attendence_type: # full-time? internal?
     eftsl: # current session
     gpa: # indicicative gpa
     progress_rate:
     previous_fails:
-    
+
 - table: enrolment
   segment: *sd
   columns:
     id: {key: yes, ref: student_progress}
     session: {key: yes}
+    subject: {key: yes}
     offering: {key: yes, ref: offerings}
     enrol_date:
     withdraw_date:
-    
+    first_id:
+
 - table: academic
   segment: *sd
   columns:
@@ -138,17 +140,17 @@
     cm:
     mean_mark:
     submit_ratio:
-    
+
 - table: activity
   segment: *sd
   columns:
     id: {key: yes, ref: enrolment}
     offering: {key: yes}
     week: {key: yes}
-    firstname: 
-    lastname: 
+    firstname:
+    lastname:
     subject_site_code:
-    session: 
+    session:
     role:
     logins:
     views:
@@ -162,7 +164,7 @@
     id: {key: yes, ref: flags}
     session: {key: yes}
     timestamp: {key: yes}
-    week: {}  
+    week: {}
     contact_type: {key: yes} # email, sms or call
     contact_attempt: {}
     contact_result: {} # Spoke with student, follow-up email...
@@ -174,8 +176,8 @@
     advice_given_by_contact:
     comments:
     tone:
-  
-    
+
+
 - table: outcome
   segment: *ret
   columns:
@@ -183,14 +185,14 @@
     session: {key: yes}
     student_intended_action: {key: yes} # Copy of what the student intended to do, if contact was successful
     TODO_some_fields_that_measure_the_result:
-    deferred_by_csu: 
+    deferred_by_csu:
     deferred_date: {} # If NA then not deferred
-    
+
 - table: exit
   segment: *sd
   columns:
     id: {key: yes, ref: student_progress}
-    date: {key: yes} 
+    date: {key: yes}
     program: {key: yes}
     name:
     faculty:
@@ -208,7 +210,7 @@
     other_info_leave:
     factors_withdraw:
     other_info_withdraw:
-    
+
 - table: support
   segment: *sd
   columns:
@@ -216,7 +218,7 @@
     support_type: {} # studiosity, etc.
     timestamp: # Unsure whether to include session, week - may not be as relavent for this table
     details: {} # might need to be quite generic based on the different types
-    
+
 - table: metadata
   columns:
     tables: {key: yes}
