@@ -79,24 +79,7 @@ affix_demographics <- function(d) {
 }
 
 # TODO: affix_academic
-#' Attaches academic summaries to a data frame
-#'
-#' Joins in aggregated key academic data to an existing data frame.
-#' The grouping of the aggregation is based on the existing data frame.
-#'
-#' @param d a data frame
-#' @export affix_academic
-#'
-#' @example
-#' single_subject <- tibble(subject = "ACC100")
-#' single_subject %>%
-#'   affix_academic()
-#'
-#' subject_and_session <- tibble(
-#'                         subject = rep("ACC100", 2),
-#'                         session = c(202030, 202060))
-#' subject_and_session %>%
-#'   affix_academic()
+
 
 # TODO: affix_flags
 
