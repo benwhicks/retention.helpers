@@ -78,8 +78,19 @@ affix_demographics <- function(d) {
     )
 }
 
+# TODO: affix_names
+# Very basic, just adds firstname lastname based on id
+
+# TODO: affix_subject
+# Adds subject info joined on offering. Will need to handle session and subject field being present or absent
+# Maybe use a set diff on names to set a 'by' character vector
+
 # TODO: affix_academic
 
 # TODO: affix_flags
 
 # TODO: affix_contact
+
+# TODO: augment_* functions
+# These will package together affixers to and adds to bulk out specific tables (activity being the main
+# as it is minimal to save on storage)

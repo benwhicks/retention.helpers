@@ -207,3 +207,22 @@ add_grade_helpers <- function(d) {
 #       Probably best to steal the levels from the _academic_ table rather than specifying...maybe...but that
 #       creates a dependency
 
+# TODO: adjust_* style functions
+# For example, adjust_minutes would try to sort the errors in the activity table (some have minutes
+# for a day over 22 days worth)
+
+#' nice count
+#'
+#' Counts a field, then uses the janitor functions to add % and total.
+#' Works for a single field only
+#'
+#' @param col Column to be counted
+#'
+#' @export nice_count
+nice_count <- function(d, col) {
+  d %>%
+    dplyr::count({{col}}) %>%
+    janitor::adorn_percentages() %>%
+    janitor::adorn_pct_formatting() %>%
+    janitor::adorn_ns()
+}
