@@ -5,7 +5,7 @@
 \alias{csu_colours_dark}
 \title{Dark colour palette}
 \format{
-An object of class \code{character} of length 4.
+An object of class \code{character} of length 5.
 }
 \usage{
 csu_colours_dark

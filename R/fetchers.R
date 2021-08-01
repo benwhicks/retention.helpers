@@ -30,6 +30,7 @@ fetch_students <- function() {
     unique()
 }
 
+
 #' Gets a beefed up table of student data by session based on course
 #'
 #' Given a course filtering this returns a data table with one row
@@ -423,6 +424,71 @@ fetch_subject_demographic_summary <- function(subject_string,
         sum(parental_education == "Not University Level") /
         sum(stringr::str_detect(parental_education, "University"))
     )
+}
+
+
+#' Fetches a summarised academic data frame
+#'
+#' Aggregates the academic table to one row per student per session.
+#'
+#' @export fetch_academic_summary
+fetch_academic_summary <- function() {
+  retention.data::academic %>%
+    retention.helpers::add_grade_helpers() %>%
+    dplyr::filter(grade_finalised) %>%
+    dplyr::group_by(id, session) %>%
+    dplyr::summarise(
+      result = dplyr::case_when(
+        all(grade_npe) ~ "Total NPE",
+        any(grade_npe) & mean(grade_pass) >= 0.5 ~ "Partial NPE (passing)",
+        any(grade_npe) & mean(grade_pass) < 0.5 ~ "Partial NPE (failing)",
+        all(grade_pass) ~ "Pass all",
+        all(grade_fail) ~ "Total non-zero fail",
+        mean(grade_pass) >= 0.5 ~ "Non-zero fail (passing)",
+        mean(grade_pass) < 0.5 ~ "Non-zero fail (failing)"),
+      result_short = dplyr::case_when(
+        all(grade_npe) ~ "Total NPE",
+        any(grade_npe)  ~ "Partial NPE",
+        mean(grade_pass) >= 0.5 ~ "Pass",
+        any(grade_fail) ~ "Non-zero fail"),
+      .groups = "drop")
+}
+
+#' fetch academic student session summary
+#'
+#' This fetches a data frame based on the enrolments and academic data that
+#' summarises a student's result per session. Categories are *pass*, *fail some*,
+#' *partial npe*, *total npe* and *withdrawn*.
+#'
+#' @export fetch_academic_by_session_summary
+fetch_academic_by_session_summary <- function() {
+  retention.data::enrolments %>%
+    dplyr::distinct(id, session) %>%
+    full_join(
+      retention.data::academic %>%
+        select(id, session, grade)
+    ) %>%
+    dplyr::mutate(
+      grade_type = case_when(
+        stringr::str_detect(grade, "H|DI|CR|PS|SY") ~ "pass",
+        is.na(grade) | grade == "AW" ~ "withdrawn",
+        grade == "FW" ~ "npe",
+        grade == "FL" ~ "fail",
+        TRUE ~ "not finalised"
+      )
+    ) %>%
+    dplyr::group_by(id, session) %>%
+    dplyr::summarise(
+      result = dplyr::case_when(
+      all(grade_type == "npe") ~ "total npe",
+      any(grade_type == "npe") ~ "partial npe",
+      any(grade_type == "fail") ~ "fail some",
+      all(grade_type == "withdrawn") ~ "withdrawn",
+      all(grade_type == "pass") ~ "pass",
+      any(grade_type == "pass") & all(grade_type == "pass" | grade_type == "not finalised") ~ "pass",
+      all(grade_type == "not finalised") ~ "pending")
+    ) %>%
+    ungroup()
 }
 
 # TODO: Document fetch_ functions fully in README and in function help

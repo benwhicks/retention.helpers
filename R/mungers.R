@@ -127,7 +127,7 @@ add_session_from_offering <- function(d) {
 add_grade_finalised <- function(d) {
     d %>%
       dplyr::mutate(
-        grade_finalised = stringr::str_detect(grade, "FW|FL|PS|CR|DI|HD")
+        grade_finalised = stringr::str_detect(grade, "FNS|FW|FL|PS|CR|DI|HD")
       )
 }
 
@@ -161,25 +161,25 @@ add_grade_pass <- function(d) {
 add_grade_fail <- function(d) {
   d %>%
     dplyr::mutate(
-      grade_fail = stringr::str_detect(grade, "FW|FL")
+      grade_fail = stringr::str_detect(grade, "FW|FL|FNS")
     )
 }
 
 
-#' add grade fail
+#' add grade Non-Participating Enrolment (NPE)
 #'
 #' Takes a data frame with \strong{grade} variable and returns the
-#' same data frame with a \strong{grade_fw} variable, which is
-#' true if grade is FW, FL; and false otherwise.
+#' same data frame with a \strong{grade_npe} variable, which is
+#' true if grade is FW or FNS; and false otherwise.
 #'
 #' @param d a data frame
 #' @return a data frame
 #'
-#' @export add_grade_fail
-add_grade_fw <- function(d) {
+#' @export add_grade_npe
+add_grade_npe <- function(d) {
   d %>%
     dplyr::mutate(
-      grade_fw = stringr::str_detect(grade, "FW")
+      grade_npe = stringr::str_detect(grade, "FW|FNS")
     )
 }
 
@@ -199,7 +199,7 @@ add_grade_helpers <- function(d) {
     add_grade_finalised() %>%
     add_grade_pass() %>%
     add_grade_fail() %>%
-    add_grade_fw()
+    add_grade_npe()
 }
 
 
@@ -225,4 +225,86 @@ nice_count <- function(d, col) {
     janitor::adorn_percentages() %>%
     janitor::adorn_pct_formatting() %>%
     janitor::adorn_ns()
+}
+
+
+#' add subject context
+#'
+#' Requires a data frame with the *subject* (six character code),
+#' *n_remained* (if this is NA the subject wasn't in HEPPP last year), *genuine_pass_rate*,
+#' *n_passed*,  *same_trigger* (boolean) and also
+#' three fields describing when the subject runs, *s1*, *s2* and *s3*.
+#' The *sn* fields should be set to __internal__, __distance__ or __both__.
+#' If they are all blank (NA) then it is deemed that it is unknown when the subject is run next.
+#'
+#' @param d data frame, as specified above
+#' @examples
+#' d <- tibble::tribble(
+#'    ~subject, ~genuine_pass_rate, ~n_remained, ~n_passed, ~same_trigger, ~s1, ~s2, ~s3,
+#'    "MEH111", NA_real_, NA, NA, NA, "both", "internal", "internal",
+#'    "NUP200", 0.88, 18, 3, TRUE, NA_character_, "both", NA_character_,
+#'    "LOL101", 0.71, 15, 0, FALSE, "distance", "distance", "distance"
+#' )
+#' d |> add_subject_context()
+#'
+#' @export add_subject_context
+add_subject_context <- function(d) {
+
+  d %>%
+    dplyr::mutate(
+      subject_context = stringr::str_c(
+
+        subject,
+        dplyr::if_else(!is.na(n_remained), " was in last years campaign. ", " was not in last years campaign."),
+
+        dplyr::if_else(is.na(genuine_pass_rate), "",
+                       stringr::str_c(
+                         " Around ", round(genuine_pass_rate / 0.05) * 5, "% of students who submit at least 1 assessment end up passing."
+                       )),
+
+        # performance of last years flagged students who remained past census date
+        dplyr::if_else(is.na(n_remained), "",
+                       dplyr::if_else(n_remained == 0, "No students in a similar position last year remained past census date.",
+                       stringr::str_c(
+                         " Last year ", n_remained, if_else(n_remained == 1, " student", " students"),
+                         " who were in ", dplyr::if_else(same_trigger, "the same", "a similar"),
+                         " position remained enrolled past census and ",
+                         dplyr::if_else(
+                           n_passed == 0,
+                           "none of them passed.",
+                           stringr::str_c(
+                             n_passed,
+                             " of them passed (",
+                             round(100*n_passed/n_remained),"%)."))
+                       ))),
+
+        # When the subject is run
+        dplyr::if_else(
+          (is.na(s1) & is.na(s2) & is.na(s3)),
+          "It is unclear when this subject is run next.",
+          stringr::str_c(
+            " This subject runs in:",
+            dplyr::case_when(
+              is.na(s1) ~ "",
+              s1 == "both" ~     " Session 1 (internal and distance)",
+              s1 == "internal" ~ " Session 1 (internal only)",
+              s1 == "distance" ~ " Session 1 (distance only)"
+            )
+            ,
+            dplyr::case_when(
+              is.na(s2) ~ "",
+              s2 == "both" ~     " Session 2 (internal and distance)",
+              s2 == "internal" ~ " Session 2 (internal only)",
+              s2 == "distance" ~ " Session 2 (distance only)"
+            ),
+            dplyr::case_when(
+              is.na(s3) ~ "",
+              s3 == "both" ~     " Session 3 (internal and distance)",
+              s3 == "internal" ~ " Session 3 (internal only)",
+              s3 == "distance" ~ " Session 3 (distance only)"
+            )
+          )),
+        "."
+      )
+    )
 }
