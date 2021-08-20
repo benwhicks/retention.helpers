@@ -348,10 +348,6 @@ add_grade_helpers <- function(d) {
 }
 
 
-# TODO: adjust_* style functions
-# For example, adjust_minutes would try to sort the errors in the activity table (some have minutes
-# for a day over 22 days worth)
-
 #' nice count
 #'
 #'  @description `r lifecycle::badge('experimental')`
