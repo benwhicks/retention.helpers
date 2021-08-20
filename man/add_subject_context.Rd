@@ -10,11 +10,11 @@ add_subject_context(d)
 \item{d}{data frame, as specified above}
 }
 \description{
-Requires a data frame with the *subject* (six character code),
-*n_remained* (if this is NA the subject wasn't in HEPPP last year), *genuine_pass_rate*,
-*n_passed*,  *same_trigger* (boolean) and also
-three fields describing when the subject runs, *s1*, *s2* and *s3*.
-The *sn* fields should be set to __internal__, __distance__ or __both__.
+Requires a data frame with the \emph{subject} (six character code),
+\emph{n_remained} (if this is NA the subject wasn't in HEPPP last year), \emph{genuine_pass_rate},
+\emph{n_passed},  \emph{same_trigger} (boolean) and also
+three fields describing when the subject runs, \emph{s1}, \emph{s2} and \emph{s3}.
+The \emph{sn} fields should be set to \strong{internal}, \strong{distance} or \strong{both}.
 If they are all blank (NA) then it is deemed that it is unknown when the subject is run next.
 }
 \examples{

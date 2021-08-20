@@ -12,7 +12,7 @@
 #' @param d a data frame
 #' @export affix_demographics
 #'
-#' @example
+#' @examples
 #' single_subject <- tibble(subject = "ACC100")
 #' single_subject %>%
 #'   affix_demographics()

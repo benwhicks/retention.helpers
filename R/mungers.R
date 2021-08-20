@@ -1,5 +1,6 @@
 # Data munging and wrangling functions
 
+
 #' str_c_sentence_list
 #'
 #' Takes a character vector and returns a string of
@@ -114,7 +115,58 @@ add_session_from_offering <- function(d) {
   }
 }
 
+grade_classifications <- tibble::tribble(
+  ~grade, ~grade_substantive, ~grade_success, ~grade_gpa,
+  "AA",                 0L,             0L,         0L,
+  "AE",                 0L,             0L,         0L,
+  "AW",                 1L,             0L,         0L,
+  "C",                 1L,             1L,         1L,
+  "CI",                 0L,             0L,         0L,
+  "CP",                 1L,             1L,         1L,
+  "CR",                 1L,             1L,         1L,
+  "D",                 1L,             1L,         1L,
+  "DI",                 1L,             1L,         1L,
+  "FF",                 1L,             0L,         1L,
+  "FI",                 1L,             0L,         1L,
+  "FL",                 1L,             0L,         1L,
+  "FW",                 1L,             0L,         1L,
+  "GP",                 0L,             0L,         0L,
+  "H1",                 1L,             1L,         0L,
+  "H2a",                 1L,             1L,         0L,
+  "H2b",                 1L,             1L,         0L,
+  "H3",                 1L,             1L,         0L,
+  "HD",                 1L,             1L,         1L,
+  "IP",                 0L,             0L,         0L,
+  "IS",                 0L,             0L,         0L,
+  "NA",                 0L,             0L,         0L,
+  "P",                 1L,             1L,         1L,
+  "PS",                 1L,             1L,         1L,
+  "PT",                 1L,             1L,         1L,
+  "S",                 1L,             1L,         0L,
+  "SX",                 0L,             0L,         0L,
+  "SY",                 1L,             1L,         0L,
+  "TA",                 0L,             0L,         0L,
+  "LV",                 0L,             0L,         0L,
+  "US",                 1L,             0L,         1L,
+  "W",                 1L,             0L,         0L,
+  "TCR",                 0L,             0L,         0L,
+  "PCR",                 0L,             0L,         0L,
+  "FCR",                 0L,             0L,         0L,
+  "WD",                 0L,             0L,         0L,
+  "DX",                 0L,             0L,         0L,
+  "FNS",                 1L,             0L,         1L
+)
+grade_classifications <- grade_classifications |>
+  dplyr::mutate(
+    grade_substantive = as.logical(grade_substantive),
+    grade_success = as.logical(grade_success),
+    grade_gpa = as.logical(grade_gpa),
+    grade = forcats::fct_relevel(grade, "AW", "FW", "FL", "PS", "CR", "DI", "HD")
+  )
+
 #' add grade finalised
+#'
+#' @description `r lifecycle::badge('deprecated')`
 #'
 #' Takes a data frame with \strong{grade} variable and returns the
 #' same data frame with a \strong{grade_finalised} variable, which is
@@ -122,16 +174,85 @@ add_session_from_offering <- function(d) {
 #'
 #' @param d a data frame
 #' @return a data frame
+#' @keywords internal
 #'
 #' @export add_grade_finalised
 add_grade_finalised <- function(d) {
+  lifecycle::deprecate_warn(
+    "0.2.0",
+    "add_grade_finalised()",
+    "add_grade_substantive()",
+    details = "Substantive is the correct terminology for CSU and definitions changed to include AW."
+  )
     d %>%
       dplyr::mutate(
         grade_finalised = stringr::str_detect(grade, "FNS|FW|FL|PS|CR|DI|HD")
       )
 }
 
+#' add grade substantive
+#'
+#' @description  `r lifecycle::badge("experimental")`
+#'
+#' Adds *grade_substantive* column to data frame, based on
+#' *grade* column. A substantive grade is included in the denominator
+#' when calculating progress rates.
+#'
+#' @param d a data frame
+#' @return a data frame
+#'
+#' @export add_grade_substantive
+add_grade_substantive <- function(d) {
+  d %>%
+    dplyr::left_join(
+      grade_classifications %>%
+        dplyr::select(grade, grade_substantive),
+      by = "grade")
+}
+
+#' add grade success
+#'
+#' @description `r lifecycle::badge("experimental")`
+#'
+#' Adds *grade_success* column to data frame, based on
+#' *grade* column.
+#'
+#' @param d a data frame
+#' @return a data frame
+#'
+#' @export add_grade_success
+add_grade_success <- function(d) {
+  d %>%
+    dplyr::left_join(
+      grade_classifications %>%
+        dplyr::select(grade, grade_success),
+      by = "grade")
+}
+
+#' add grade gpa
+#'
+#' @description `r lifecycle::badge("experimental")`
+#'
+#' Adds *grade_gpa* column to data frame, based on
+#' *grade* column. Grades that count towards a GPA
+#' are not the same as substantive grades (a key difference
+#' being AW grades)
+#'
+#' @param d a data frame
+#' @return a data frame
+#'
+#' @export add_grade_gpa
+add_grade_gpa <- function(d) {
+  d %>%
+    dplyr::left_join(
+      grade_classifications %>%
+        dplyr::select(grade, grade_gpa),
+      by = "grade")
+}
+
 #' add grade pass
+#'
+#' @description  `r lifecycle::badge('superseded')`
 #'
 #' Takes a data frame with \strong{grade} variable and returns the
 #' same data frame with a \strong{grade_pass} variable, which is
@@ -139,9 +260,16 @@ add_grade_finalised <- function(d) {
 #'
 #' @param d a data frame
 #' @return a data frame
+#' @keywords internal
 #'
 #' @export add_grade_pass
 add_grade_pass <- function(d) {
+  lifecycle::deprecate_warn(
+    "0.2.0",
+    "add_grade_pass()",
+    "add_grade_success()",
+    details = "Success is the correct terminology for CSU and some definitions changed."
+  )
   d %>%
     dplyr::mutate(
       grade_pass = stringr::str_detect(grade, "PS|CR|DI|HD")
@@ -196,8 +324,9 @@ add_grade_npe <- function(d) {
 #' @export add_grade_helpers
 add_grade_helpers <- function(d) {
   d %>%
-    add_grade_finalised() %>%
-    add_grade_pass() %>%
+    add_grade_substantive() %>%
+    add_grade_success() %>%
+    add_grade_gpa() %>%
     add_grade_fail() %>%
     add_grade_npe()
 }

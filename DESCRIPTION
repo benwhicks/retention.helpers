@@ -1,7 +1,7 @@
 Package: retention.helpers
 Type: Package
 Title: Munging, visualisation and analysis helper functions
-Version: 0.1.0
+Version: 0.2.0
 Author: Ben Hicks
 Maintainer: Ben Hicks <benwhicks@gmail.com>
 Description: Various helper functions designed to be used with the CSU Retention data package.  The data package is not publically availalbe. 
@@ -14,4 +14,6 @@ Imports:
     stringr,
     magrittr,
     tidyr,
-    janitor
+    janitor,
+    lifecycle
+Roxygen: list(markdown = TRUE)

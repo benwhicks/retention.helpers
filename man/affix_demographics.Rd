@@ -15,3 +15,21 @@ The grouping of the aggregation is based on the existing data frame.
 As it is aggregated the categorical variables are reduced to a count and
 a relevant percentage of the key categorical value of interest.
 }
+\examples{
+single_subject <- tibble(subject = "ACC100")
+single_subject \%>\%
+  affix_demographics()
+
+subject_and_session <- tibble(
+                        subject = rep("ACC100", 2),
+                        session = c(202030, 202060))
+subject_and_session \%>\%
+  affix_demographics()
+
+course_campus <- tibble(
+   course = c("Bachelor of Occupational Therapy", "Bachelor of Occupational Therapy"),
+   campus = c("Port Macquarie", "Albury-Wodonga"))
+
+course_campus \%>\%
+  affix_demographics()
+}

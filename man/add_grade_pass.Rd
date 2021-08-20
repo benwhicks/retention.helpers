@@ -13,7 +13,10 @@ add_grade_pass(d)
 a data frame
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}}
+
 Takes a data frame with \strong{grade} variable and returns the
 same data frame with a \strong{grade_pass} variable, which is
 true if grade is PS, CR, DI or HD; and false otherwise.
 }
+\keyword{internal}

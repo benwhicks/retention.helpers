@@ -48,8 +48,39 @@ test_that("add_session_from_offering works", {
 
 
 
-test_that("add_grade_finalised works", {
-  expect_equivalent(add_grade_finalised(
+test_that("add_grade_substantive works", {
+  expect_equivalent(add_grade_substantive(
+    tibble::tibble(
+      grade = c("WD", "TA",
+                "AW", "PS", "CR", "DI", "HD", "FW", "FL") %>%
+        forcats::fct_relevel("AW", "FW", "FL", "PS", "CR", "DI", "HD")
+    )),
+    tibble::tibble(
+      grade = c("WD", "TA",
+                "AW", "PS", "CR", "DI", "HD", "FW", "FL") %>%
+        forcats::fct_relevel("AW", "FW", "FL", "PS", "CR", "DI", "HD"),
+      grade_substantive = c(rep(F, 2), rep(T, 7))
+    ))
+})
+
+test_that("add_grade_success works", {
+  expect_equivalent(add_grade_success(
+    tibble::tibble(
+      grade = c("WD", "TA", "AW",
+                "PS", "CR", "DI", "HD",
+                "FW", "FL") %>%
+        forcats::fct_relevel("AW", "FW", "FL", "PS", "CR", "DI", "HD")
+    )),
+    tibble::tibble(
+      grade = c("WD", "TA", "AW",
+                "PS", "CR", "DI", "HD", "FW", "FL") %>%
+        forcats::fct_relevel("AW", "FW", "FL", "PS", "CR", "DI", "HD"),
+      grade_success = c(rep(F, 3), rep(T, 4), rep(F, 2))
+    ))
+})
+
+test_that("add_grade_gpa works", {
+  expect_equivalent(add_grade_gpa(
     tibble::tibble(
       grade = c("WD", "TA", "AW",
                 "PS", "CR", "DI", "HD", "FW", "FL") %>%
@@ -59,27 +90,7 @@ test_that("add_grade_finalised works", {
       grade = c("WD", "TA", "AW",
                 "PS", "CR", "DI", "HD", "FW", "FL") %>%
         forcats::fct_relevel("AW", "FW", "FL", "PS", "CR", "DI", "HD"),
-      grade_finalised = c(rep(F, 3), rep(T, 6))
+      grade_substantive = c(rep(F, 3), rep(T, 6))
     ))
-})
-
-test_that("add_grade_helpers works", {
-  expect_equivalent(add_grade_helpers(
-    tibble::tibble(
-      grade = c("WD", "TA", "AW",
-                "FW", "FL",
-                "PS", "CR", "DI", "HD") %>%
-        forcats::fct_relevel("AW", "FW", "FL", "PS", "CR", "DI", "HD"))
-    ),
-    tibble::tibble(
-      grade = c("WD", "TA", "AW",
-                "FW", "FL",
-                "PS", "CR", "DI", "HD") %>%
-        forcats::fct_relevel("AW", "FW", "FL", "PS", "CR", "DI", "HD"),
-      grade_finalised = c(rep(F, 3), rep(T, 6)),
-      grade_pass = c(rep(F, 5), rep(T, 4)),
-      grade_fail = c(rep(F, 3), T, T, rep(F, 4)),
-      grade_fw = c(rep(F, 3), T, rep(F, 5)))
-    )
 })
 

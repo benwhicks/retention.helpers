@@ -10,6 +10,6 @@ nice_count(d, col)
 \item{col}{Column to be counted}
 }
 \description{
-Counts a field, then uses the janitor functions to add % and total.
+Counts a field, then uses the janitor functions to add \% and total.
 Works for a single field only
 }

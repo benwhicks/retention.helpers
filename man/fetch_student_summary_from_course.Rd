@@ -26,8 +26,10 @@ data as possible. By default it only includes flags with the concerns:
 You \emph{must} have the \code{retention.data} package loaded for this
 to work, or the equivalent tables.
 Some of the calculated fields are worth explaining:
-* \strong{progress_rate} is the ratio of passing grades (PS, CR, DI, HD) to all grades
-* \strong{pass_rate} is the ratio of passing grades to all finalised grades
-* \strong{fail_rate} is the ratio of failing grades (FL, FW) to all grades
-* \strong{fw_rate} is the ratio of FW (fail by non submission) to all grades
+\itemize{
+\item \strong{progress_rate} is the ratio of passing grades (PS, CR, DI, HD) to all grades
+\item \strong{pass_rate} is the ratio of passing grades to all finalised grades
+\item \strong{fail_rate} is the ratio of failing grades (FL, FW) to all grades
+\item \strong{fw_rate} is the ratio of FW (fail by non submission) to all grades
+}
 }

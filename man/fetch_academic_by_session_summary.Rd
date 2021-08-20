@@ -8,6 +8,6 @@ fetch_academic_by_session_summary()
 }
 \description{
 This fetches a data frame based on the enrolments and academic data that
-summarises a student's result per session. Categories are *pass*, *fail some*,
-*partial npe*, *total npe* and *withdrawn*.
+summarises a student's result per session. Categories are \emph{pass}, \emph{fail some},
+\emph{partial npe}, \emph{total npe} and \emph{withdrawn}.
 }
