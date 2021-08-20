@@ -13,6 +13,9 @@ add_grade_npe(d)
 a data frame
 }
 \description{
+@description \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#maturing}{\figure{lifecycle-maturing.svg}{options: alt='[Maturing]'}}}{\strong{[Maturing]}}
+}
+\details{
 Takes a data frame with \strong{grade} variable and returns the
 same data frame with a \strong{grade_npe} variable, which is
 true if grade is FW or FNS; and false otherwise.

@@ -1,5 +1,7 @@
 #' chi and odds
 #'
+#' @description `r lifecycle::badge('questioning')`
+#'
 #' Takes in a a n x 3 data frame and calculates
 #' the chi squared statistic, the p-value of this
 #' and the odds ratio.

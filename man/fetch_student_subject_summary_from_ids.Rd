@@ -19,12 +19,13 @@ fetch_student_subject_summary_from_ids(
 a data frame, one row per student per subject per session
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+
 Given list of student ids this returns a data table with one row
 per student per subject per session with as much demographic, retention and academic
 data as possible. By default it only includes flags with the concerns:
 \emph{course requirement, low activity, non submission} and \emph{prior performance}
-}
-\details{
+
 You \emph{must} have the \code{retention.data} package loaded for this
 to work, or the equivalent tables.
 }

@@ -3,6 +3,8 @@
 
 #' str_c_sentence_list
 #'
+#'  @description `r lifecycle::badge('maturing')`
+#'
 #' Takes a character vector and returns a string of
 #' the elements in that character vector separated by
 #' commas, with the last two elements separated with " and "
@@ -29,6 +31,8 @@ str_c_sentence_list <- function(s) {
 
 #' add year from session
 #'
+#'  @description `r lifecycle::badge('stable')`
+#'
 #' Takes a data frame with \strong{session} variable and returns the
 #' same data frame with a \strong{year} variable. Requires the \strong{session}
 #' to be in the format \emph{201930}
@@ -49,6 +53,8 @@ add_year_from_session <- function(d) {
 
 #' add year from offering
 #'
+#'  @description `r lifecycle::badge('stable')`
+#'
 #' Takes a data frame with \strong{offering} variable and returns the
 #' same data frame with a \strong{year} variable. Requires the \strong{offering}
 #' to be in the format ABC123_201930_W_D which would return \emph{2019}
@@ -67,6 +73,8 @@ add_year_from_offering <- function(d) {
 }
 
 #' add subject from offering
+#'
+#'  @description `r lifecycle::badge('stable')`
 #'
 #' Takes a data frame with \strong{offering} variable and returns the
 #' same data frame with a \strong{subject} variable. Requires the \strong{offering}
@@ -91,6 +99,8 @@ add_subject_from_offering <- function(d) {
 }
 
 #' add session from offering
+#'
+#' @description `r lifecycle::badge('stable')`
 #'
 #' Takes a data frame with \strong{offering} variable and returns the
 #' same data frame with a \strong{session} variable. Requires the \strong{offering}
@@ -278,9 +288,11 @@ add_grade_pass <- function(d) {
 
 #' add grade fail
 #'
+#'  @description `r lifecycle::badge('stable')`
+#'
 #' Takes a data frame with \strong{grade} variable and returns the
 #' same data frame with a \strong{grade_fail} variable, which is
-#' true if grade is FW, FL; and false otherwise.
+#' true if grade is FW, FL or FNS; and false otherwise.
 #'
 #' @param d a data frame
 #' @return a data frame
@@ -295,6 +307,8 @@ add_grade_fail <- function(d) {
 
 
 #' add grade Non-Participating Enrolment (NPE)
+#'
+#'  @description `r lifecycle::badge('maturing')`
 #'
 #' Takes a data frame with \strong{grade} variable and returns the
 #' same data frame with a \strong{grade_npe} variable, which is
@@ -314,6 +328,8 @@ add_grade_npe <- function(d) {
 
 #' add grade helpers
 #'
+#'  @description `r lifecycle::badge('maturing')`
+#'
 #' Takes a data frame with \strong{grade} variable and returns the
 #' same data frame with a series of grade_* variables to assist in
 #' analysing grade data.
@@ -332,15 +348,13 @@ add_grade_helpers <- function(d) {
 }
 
 
-# TODO: Create fct_ style functions that replicate the factor structure in the retention package.
-#       Probably best to steal the levels from the _academic_ table rather than specifying...maybe...but that
-#       creates a dependency
-
 # TODO: adjust_* style functions
 # For example, adjust_minutes would try to sort the errors in the activity table (some have minutes
 # for a day over 22 days worth)
 
 #' nice count
+#'
+#'  @description `r lifecycle::badge('experimental')`
 #'
 #' Counts a field, then uses the janitor functions to add % and total.
 #' Works for a single field only
@@ -358,6 +372,8 @@ nice_count <- function(d, col) {
 
 
 #' add subject context
+#'
+#'  @description `r lifecycle::badge('maturing')`
 #'
 #' Requires a data frame with the *subject* (six character code),
 #' *n_remained* (if this is NA the subject wasn't in HEPPP last year), *genuine_pass_rate*,

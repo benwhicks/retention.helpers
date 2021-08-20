@@ -13,7 +13,10 @@ add_grade_fail(d)
 a data frame
 }
 \description{
+@description \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#stable}{\figure{lifecycle-stable.svg}{options: alt='[Stable]'}}}{\strong{[Stable]}}
+}
+\details{
 Takes a data frame with \strong{grade} variable and returns the
 same data frame with a \strong{grade_fail} variable, which is
-true if grade is FW, FL; and false otherwise.
+true if grade is FW, FL or FNS; and false otherwise.
 }

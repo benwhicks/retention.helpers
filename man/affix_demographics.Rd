@@ -10,6 +10,8 @@ affix_demographics(d)
 \item{d}{a data frame}
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#maturing}{\figure{lifecycle-maturing.svg}{options: alt='[Maturing]'}}}{\strong{[Maturing]}}
+
 Joins in aggregated key demographic data to an existing data frame.
 The grouping of the aggregation is based on the existing data frame.
 As it is aggregated the categorical variables are reduced to a count and

@@ -10,6 +10,9 @@ nice_count(d, col)
 \item{col}{Column to be counted}
 }
 \description{
+@description \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+}
+\details{
 Counts a field, then uses the janitor functions to add \% and total.
 Works for a single field only
 }

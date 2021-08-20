@@ -4,6 +4,8 @@
 
 #' Attaches demographic summaries to a data frame
 #'
+#' @description `r lifecycle::badge('maturing')`
+#'
 #' Joins in aggregated key demographic data to an existing data frame.
 #' The grouping of the aggregation is based on the existing data frame.
 #' As it is aggregated the categorical variables are reduced to a count and

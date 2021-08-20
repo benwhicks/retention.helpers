@@ -10,6 +10,9 @@ add_subject_context(d)
 \item{d}{data frame, as specified above}
 }
 \description{
+@description \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#maturing}{\figure{lifecycle-maturing.svg}{options: alt='[Maturing]'}}}{\strong{[Maturing]}}
+}
+\details{
 Requires a data frame with the \emph{subject} (six character code),
 \emph{n_remained} (if this is NA the subject wasn't in HEPPP last year), \emph{genuine_pass_rate},
 \emph{n_passed},  \emph{same_trigger} (boolean) and also

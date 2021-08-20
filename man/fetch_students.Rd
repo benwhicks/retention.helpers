@@ -7,6 +7,8 @@
 fetch_students()
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#maturing}{\figure{lifecycle-maturing.svg}{options: alt='[Maturing]'}}}{\strong{[Maturing]}}
+
 Grabs the most data possible on as many students as possible.
 For time dependent data (as in the student_progress table)
 it grabs the latest non NA data. Note that this \emph{only} works

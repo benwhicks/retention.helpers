@@ -13,6 +13,9 @@ add_grade_helpers(d)
 a data frame
 }
 \description{
+@description \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#maturing}{\figure{lifecycle-maturing.svg}{options: alt='[Maturing]'}}}{\strong{[Maturing]}}
+}
+\details{
 Takes a data frame with \strong{grade} variable and returns the
 same data frame with a series of grade_* variables to assist in
 analysing grade data.

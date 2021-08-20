@@ -2,6 +2,8 @@
 
 #' Fetches as much student data as possible, preferencing the most recent
 #'
+#' @description `r lifecycle::badge('maturing')`
+#'
 #' Grabs the most data possible on as many students as possible.
 #' For time dependent data (as in the student_progress table)
 #' it grabs the latest non NA data. Note that this \emph{only} works
@@ -32,6 +34,8 @@ fetch_students <- function() {
 
 
 #' Gets a beefed up table of student data by session based on course
+#'
+#' @description `r lifecycle::badge('experimental')`
 #'
 #' Given a course filtering this returns a data table with one row
 #' per student per session with as much demographic, retention and academic
@@ -125,6 +129,8 @@ fetch_student_summary_from_course <- function(course_filter_string = ".",
 }
 
 #' Gets a beefed up table of student data by session based on a list of student ids
+#'
+#' @description `r lifecycle::badge('experimental')`
 #'
 #' Given a list of student ids this returns a data table with one row
 #' per student per session with as much demographic, retention and academic
@@ -222,6 +228,8 @@ fetch_student_session_summary_from_ids <- function(ids,
 
 #' Gets a beefed up table of student data by subject
 #'
+#' @description `r lifecycle::badge('experimental')`
+#'
 #' Given a subject filtering this returns a data table with one row
 #' per student per subject per session with as much demographic, retention and academic
 #' data as possible. By default it only includes flags with the concerns:
@@ -293,6 +301,8 @@ fetch_student_summary_from_subject <- function(subject_filter_string = ".",
 }
 
 #' Gets a beefed up table of student data by subject from a list of ids
+#'
+#' @description `r lifecycle::badge('experimental')`
 #'
 #' Given list of student ids this returns a data table with one row
 #' per student per subject per session with as much demographic, retention and academic
@@ -367,6 +377,8 @@ fetch_student_subject_summary_from_ids <- function(ids,
 
 #' Gets a overall demographic summary by subject
 #'
+#' @description `r lifecycle::badge('experimental')`
+#'
 #' Returns a summary of basic key demographics breakdown based on
 #' a selection of subjects. Currently the key demographics selected by
 #' this function are Low SES, Australian Indigenous, Regional and First in Family
@@ -429,6 +441,8 @@ fetch_subject_demographic_summary <- function(subject_string,
 
 #' Fetches a summarised academic data frame
 #'
+#' @description `r lifecycle::badge('experimental')`
+#'
 #' Aggregates the academic table to one row per student per session.
 #'
 #' @export fetch_academic_summary
@@ -455,6 +469,8 @@ fetch_academic_summary <- function() {
 }
 
 #' fetch academic student session summary
+#'
+#' @description `r lifecycle::badge('experimental')`
 #'
 #' This fetches a data frame based on the enrolments and academic data that
 #' summarises a student's result per session. Categories are *pass*, *fail some*,
@@ -492,5 +508,3 @@ fetch_academic_by_session_summary <- function() {
 }
 
 # TODO: Document fetch_ functions fully in README and in function help
-
-# TODO: fetch_student_summary_from_offering? (again by session) Could just rejoin subject?

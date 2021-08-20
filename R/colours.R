@@ -20,7 +20,7 @@ csu_colours_dark <- c(
   "#232845",  # dark blue
   "#0d3b31",  # dark green
   "#746858",  # dark tan
-  "#222222"  # black
+  "#222222"   # black
 )
 
 

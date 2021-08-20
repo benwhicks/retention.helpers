@@ -27,6 +27,8 @@ fetch_subject_demographic_summary(
 a data frame, one row per subject (and per session if by session is TRUE)
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+
 Returns a summary of basic key demographics breakdown based on
 a selection of subjects. Currently the key demographics selected by
 this function are Low SES, Australian Indigenous, Regional and First in Family

@@ -19,6 +19,8 @@ fetch_student_summary_from_course(
 a data frame, one row per student per session
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+
 Given a course filtering this returns a data table with one row
 per student per session with as much demographic, retention and academic
 data as possible. By default it only includes flags with the concerns:

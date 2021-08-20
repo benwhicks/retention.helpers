@@ -10,11 +10,12 @@ chi_and_odds(m)
 \item{m}{A n x 3 data frame or tibble. Should have variables in a particular order: category_name, observed_count, expected_count}
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#questioning}{\figure{lifecycle-questioning.svg}{options: alt='[Questioning]'}}}{\strong{[Questioning]}}
+
 Takes in a a n x 3 data frame and calculates
 the chi squared statistic, the p-value of this
 and the odds ratio.
-}
-\details{
+
 First column must be the category names.
 Second column must be observed values (a count)
 Third column must be the expected values (also a count, but can be weights or probabilities)

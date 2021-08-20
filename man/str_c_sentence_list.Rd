@@ -13,6 +13,9 @@ str_c_sentence_list(s)
 a string
 }
 \description{
+@description \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#maturing}{\figure{lifecycle-maturing.svg}{options: alt='[Maturing]'}}}{\strong{[Maturing]}}
+}
+\details{
 Takes a character vector and returns a string of
 the elements in that character vector separated by
 commas, with the last two elements separated with " and "
