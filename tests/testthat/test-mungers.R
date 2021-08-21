@@ -94,3 +94,22 @@ test_that("add_grade_gpa works", {
     ))
 })
 
+test_that("add_gpa_by works", {
+  expect_equivalent(
+    add_gpa_by(
+      tibble::tibble(
+        id = c(rep("1A", 4 %>% %>% %>% %>% %>% %>% %>% %>% ), rep("34", 5)),
+        grade = c("AW", "PS", "HD", "FL",
+                  "PS", "CR", "DI", "HD", "FW") %>%
+          forcats::fct_relevel("AW", "FW", "FL", "PS", "CR", "DI", "HD")
+      ),
+      id),
+
+    tibble::tibble(
+      id = c("1A", "34"),
+      gpa = c(
+        (4 + 7 + 0) / 3,
+        (4 + 5 + 6 + 7 + 0) / 5)
+    ))
+})
+

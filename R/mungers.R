@@ -166,6 +166,12 @@ grade_classifications <- tibble::tribble(
   "DX",                 0L,             0L,         0L,
   "FNS",                 1L,             0L,         1L
 )
+
+#' grade classifications
+#'
+#' What each of the grade codes count towards
+#'
+#' @export grade_classifications
 grade_classifications <- grade_classifications |>
   dplyr::mutate(
     grade_substantive = as.logical(grade_substantive),
@@ -345,6 +351,50 @@ add_grade_helpers <- function(d) {
     add_grade_gpa() %>%
     add_grade_fail() %>%
     add_grade_npe()
+}
+
+#' add GPA
+#'
+#' @description `r lifecycle::badge('experimental')`
+#'
+#' Takes a data frame with *grade* and other variables for grouping and
+#' returns the a data frame with the grouping variables and *gpa*.
+#'
+#' @param d a data frame
+#' @param ... grouping variables, passed to group_by
+#' @return a data frame
+#'
+#' @export add_gpa_by
+add_gpa_by <- function(d, ...) {
+  d %>%
+    dplyr::group_by(...) %>%
+    retention.helpers::add_grade_gpa() %>%
+    dplyr::summarise(
+      gpa = dplyr::if_else(
+        sum(grade_gpa, na.rm = TRUE) == 0,
+        NA_real_,
+        sum(
+          dplyr::case_when(
+            grade == "HD" ~ 7,
+            grade == "A+" ~ 7,
+            grade == "DI" ~ 6,
+            grade == "D"  ~ 6,
+            grade == "CR" ~ 5,
+            grade == "C"  ~ 5,
+            grade == "PS" ~ 4,
+            grade == "P"  ~ 4,
+            grade == "CP" ~ 3,
+            grade == "PT" ~ 3,
+            grade == "CT" ~ 3,
+            grade == "SR" ~ 3,
+            grade == "T"  ~ 3,
+            grade == "XP" ~ 3,
+            TRUE ~ 0,
+          )
+        ) / sum(grade_gpa, na.rm = TRUE)
+      ),
+      .groups = "drop"
+    )
 }
 
 

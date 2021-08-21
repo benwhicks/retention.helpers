@@ -53,8 +53,8 @@ fetch_students <- function() {
 #' @param concerns A list of options from for the concern field in the flags table.
 #' @return a data frame, one row per student per session
 #'
-#' @export fetch_student_summary_from_course
-fetch_student_summary_from_course <- function(course_filter_string = ".",
+#' @export fetch_student_session_summary_from_course
+fetch_student_session_summary_from_course <- function(course_filter_string = ".",
                                               concerns = c("course requirement",
                                                            "low activity",
                                                            "non submission",
@@ -66,7 +66,7 @@ fetch_student_summary_from_course <- function(course_filter_string = ".",
     dplyr::distinct(id, session, course) %>%
     dplyr::inner_join(
       student_demographics %>%
-        dplyr::select(-firstname, -lastname, -postcode, -yob_approx),
+        dplyr::select(-firstname, -lastname),
       by = "id") %>%
     add_year_from_session()
 
@@ -85,19 +85,21 @@ fetch_student_summary_from_course <- function(course_filter_string = ".",
     dplyr::mutate(heppp = tidyr::replace_na(heppp, FALSE))
 
   aca_summary <- aca %>%
-    dplyr::mutate(
-      pass = stringr::str_detect(grade, "PS|CR|DI|HD"),
-      fail = stringr::str_detect(grade, "FL|FW"),
-      fw = stringr::str_detect(grade, "FW"),
-      finalised = stringr::str_detect(grade, "FW|FL|PS|CR|DI|HD")) %>%
+    retention.helpers::add_grade_helpers() %>%
     dplyr::group_by(id, session) %>%
     dplyr::summarise(
-      progress_rate = mean(pass, na.rm = T),
-      pass_rate = if_else(sum(finalised) == 0, NA_real_, sum(pass) / sum(finalised)),
-      fail_rate = mean(fail, na.rm = T),
-      fw_rate = mean(fw, na.rm = T),
-      finalised_grades = sum(finalised),
-      grades = paste0(sort(grade), collapse = ", "))
+      progress_rate = sum(grade_success, na.rm = T) / sum(grade_substantive, na.rm = T),
+      npe_rate = sum(grade_npe, na.rm = T) / sum(grade_substantive, na.rm = T),
+      n_fails = sum(grade_fail, na.rm = T),
+      n_substantive_grades = sum(grade_substantive),
+      grades = paste0(sort(grade), collapse = ", ")) |>
+    left_join(
+      aca |>
+        retention.helpers::add_gpa_by(id, session),
+      by = c('id', 'session')
+    ) |>
+    dplyr::mutate(dplyr::across(.fns = ~ifelse(is.infinite(.), NA, .))) |>
+    ungroup()
 
   missed_by_heppp <- aca %>%
     dplyr::group_by(id, session) %>%
@@ -128,6 +130,7 @@ fetch_student_summary_from_course <- function(course_filter_string = ".",
   dat
 }
 
+
 #' Gets a beefed up table of student data by session based on a list of student ids
 #'
 #' @description `r lifecycle::badge('experimental')`
@@ -142,10 +145,8 @@ fetch_student_summary_from_course <- function(course_filter_string = ".",
 #'
 #' Some of the calculated fields are worth explaining:
 #'
-#' * \strong{progress_rate} is the ratio of passing grades (PS, CR, DI, HD) to all grades
-#' * \strong{pass_rate} is the ratio of passing grades to all finalised grades
-#' * \strong{fail_rate} is the ratio of failing grades (FL, FW) to all grades
-#' * \strong{fw_rate} is the ratio of FW (fail by non submission) to all grades
+#' * \strong{progress_rate} is the ratio of successful grades to substantive grades
+#' * \strong{npe_rate} is the ratio of FW / FNS (fail by non submission) to all grades
 #'
 #' @param ids A character vector of student ids
 #' @param concerns A list of options from for the concern field in the flags table.
@@ -164,7 +165,7 @@ fetch_student_session_summary_from_ids <- function(ids,
     dplyr::distinct(id, session, course) %>% # fetches anyone who was active at some point in the session
     dplyr::inner_join(
       student_demographics %>%
-        dplyr::select(-firstname, -lastname, -postcode, -yob_approx),
+        dplyr::select(-firstname, -lastname),
       by = "id") %>%
     add_year_from_session()
 
@@ -183,19 +184,21 @@ fetch_student_session_summary_from_ids <- function(ids,
     dplyr::mutate(heppp = tidyr::replace_na(heppp, FALSE))
 
   aca_summary <- aca %>%
-    dplyr::mutate(
-      pass = stringr::str_detect(grade, "PS|CR|DI|HD"),
-      fail = stringr::str_detect(grade, "FL|FW"),
-      fw = stringr::str_detect(grade, "FW"),
-      finalised = stringr::str_detect(grade, "FW|FL|PS|CR|DI|HD")) %>%
+    retention.helpers::add_grade_helpers() %>%
     dplyr::group_by(id, session) %>%
     dplyr::summarise(
-      progress_rate = mean(pass, na.rm = T),
-      pass_rate = if_else(sum(finalised) == 0, NA_real_, sum(pass) / sum(finalised)),
-      fail_rate = mean(fail, na.rm = T),
-      fw_rate = mean(fw, na.rm = T),
-      finalised_grades = sum(finalised),
-      grades = paste0(sort(grade), collapse = ", "))
+      progress_rate = sum(grade_success, na.rm = T) / sum(grade_substantive, na.rm = T),
+      npe_rate = sum(grade_npe, na.rm = T) / sum(grade_substantive, na.rm = T),
+      n_fails = sum(grade_fail, na.rm = T),
+      n_substantive_grades = sum(grade_substantive),
+      grades = paste0(sort(grade), collapse = ", ")) |>
+    left_join(
+      aca |>
+        retention.helpers::add_gpa_by(id, session),
+      by = c('id', 'session')
+    ) |>
+    dplyr::mutate(dplyr::across(.fns = ~ifelse(is.infinite(.), NA, .))) |>
+    ungroup()
 
   missed_by_heppp <- aca %>%
     dplyr::group_by(id, session) %>%
@@ -226,6 +229,7 @@ fetch_student_session_summary_from_ids <- function(ids,
   dat
 }
 
+
 #' Gets a beefed up table of student data by subject
 #'
 #' @description `r lifecycle::badge('experimental')`
@@ -242,8 +246,8 @@ fetch_student_session_summary_from_ids <- function(ids,
 #' @param concerns A list of options from for the concern field in the flags table.
 #' @return a data frame, one row per student per subject per session
 #'
-#' @export fetch_student_summary_from_subject
-fetch_student_summary_from_subject <- function(subject_filter_string = ".",
+#' @export fetch_student_subject_summary_from_subject
+fetch_student_subject_summary_from_subject <- function(subject_filter_string = ".",
                                               concerns = c("course requirement",
                                                            "low activity",
                                                            "non submission",
@@ -258,7 +262,7 @@ fetch_student_summary_from_subject <- function(subject_filter_string = ".",
     dplyr::distinct(id, session, subject) %>%
     dplyr::inner_join(
       student_demographics %>%
-        dplyr::select(-firstname, -lastname, -postcode, -yob_approx),
+        dplyr::select(-firstname, -lastname),
       by = "id") %>%
     add_year_from_session()
 
@@ -300,9 +304,11 @@ fetch_student_summary_from_subject <- function(subject_filter_string = ".",
   dat
 }
 
+
+
 #' Gets a beefed up table of student data by subject from a list of ids
 #'
-#' @description `r lifecycle::badge('experimental')`
+#' @description `r lifecycle::badge('questioning')`
 #'
 #' Given list of student ids this returns a data table with one row
 #' per student per subject per session with as much demographic, retention and academic
@@ -315,7 +321,7 @@ fetch_student_summary_from_subject <- function(subject_filter_string = ".",
 #' @param ids A character vector of student ids
 #' @param concerns A list of options from for the concern field in the flags table.
 #' @return a data frame, one row per student per subject per session
-#'
+#' @export fetch_student_subject_summary_from_ids
 fetch_student_subject_summary_from_ids <- function(ids,
                                               concerns = c("course requirement",
                                                            "low activity",
@@ -441,70 +447,64 @@ fetch_subject_demographic_summary <- function(subject_string,
 
 #' Fetches a summarised academic data frame
 #'
-#' @description `r lifecycle::badge('experimental')`
+#' @description `r lifecycle::badge('questioning')`
 #'
-#' Aggregates the academic table to one row per student per session.
+#' Aggregates the academic table based on grouping variables. Grouping
+#' variables must be in the *academic* table, so *id*, *session*, *subject*
+#' are the probably choices.
 #'
-#' @export fetch_academic_summary
-fetch_academic_summary <- function() {
+#' @param ... variables to group output by
+#'
+#' @export fetch_academic_summary_by
+fetch_academic_summary_by <- function(...) {
   retention.data::academic %>%
     retention.helpers::add_grade_helpers() %>%
-    dplyr::filter(grade_finalised) %>%
-    dplyr::group_by(id, session) %>%
+    dplyr::filter(grade_substantive) %>%
+    dplyr::group_by(...) %>%
     dplyr::summarise(
       result = dplyr::case_when(
         all(grade_npe) ~ "Total NPE",
-        any(grade_npe) & mean(grade_pass) >= 0.5 ~ "Partial NPE (passing)",
-        any(grade_npe) & mean(grade_pass) < 0.5 ~ "Partial NPE (failing)",
-        all(grade_pass) ~ "Pass all",
+        any(grade_npe) & mean(grade_success) >= 0.5 ~ "Partial NPE (passing)",
+        any(grade_npe) & mean(grade_success) < 0.5 ~ "Partial NPE (failing)",
+        all(grade_success) ~ "Pass all",
         all(grade_fail) ~ "Total non-zero fail",
-        mean(grade_pass) >= 0.5 ~ "Non-zero fail (passing)",
-        mean(grade_pass) < 0.5 ~ "Non-zero fail (failing)"),
+        mean(grade_success) >= 0.5 ~ "Non-zero fail (passing)",
+        mean(grade_success) < 0.5 ~ "Non-zero fail (failing)"),
       result_short = dplyr::case_when(
         all(grade_npe) ~ "Total NPE",
         any(grade_npe)  ~ "Partial NPE",
-        mean(grade_pass) >= 0.5 ~ "Pass",
+        mean(grade_success) >= 0.5 ~ "Pass",
         any(grade_fail) ~ "Non-zero fail"),
       .groups = "drop")
 }
 
-#' fetch academic student session summary
+
+#' fetch counts of enrolments / withdrawals
 #'
-#' @description `r lifecycle::badge('experimental')`
+#' @description `r lifecycle::badge('questioning')`
 #'
-#' This fetches a data frame based on the enrolments and academic data that
-#' summarises a student's result per session. Categories are *pass*, *fail some*,
-#' *partial npe*, *total npe* and *withdrawn*.
+#' Fetches counts of enrolled subjects, withdrawn subject and substantive grades
+#' by grouping variables (such as *id*, *session*).
 #'
-#' @export fetch_academic_by_session_summary
-fetch_academic_by_session_summary <- function() {
+#' @param ... grouping variables
+#'
+#' @export fetch_enrolment_counts_by
+fetch_enrolment_counts_by <- function(...) {
   retention.data::enrolments %>%
-    dplyr::distinct(id, session) %>%
-    full_join(
+    dplyr::distinct(id, session, enrol_date, withdraw_date) %>%
+    dplyr::full_join(
       retention.data::academic %>%
-        select(id, session, grade)
+        dplyr::select(id, session, grade),
+      by = c("id", "session")
     ) %>%
-    dplyr::mutate(
-      grade_type = case_when(
-        stringr::str_detect(grade, "H|DI|CR|PS|SY") ~ "pass",
-        is.na(grade) | grade == "AW" ~ "withdrawn",
-        grade == "FW" ~ "npe",
-        grade == "FL" ~ "fail",
-        TRUE ~ "not finalised"
-      )
-    ) %>%
-    dplyr::group_by(id, session) %>%
+    retention.helpers::add_grade_substantive() %>%
+    dplyr::group_by(...) %>%
     dplyr::summarise(
-      result = dplyr::case_when(
-      all(grade_type == "npe") ~ "total npe",
-      any(grade_type == "npe") ~ "partial npe",
-      any(grade_type == "fail") ~ "fail some",
-      all(grade_type == "withdrawn") ~ "withdrawn",
-      all(grade_type == "pass") ~ "pass",
-      any(grade_type == "pass") & all(grade_type == "pass" | grade_type == "not finalised") ~ "pass",
-      all(grade_type == "not finalised") ~ "pending")
-    ) %>%
-    ungroup()
+      n_enrolled = sum(grade_substantive | !is.na(enrol_date)),
+      n_withdrawn = sum(!is.na(withdraw_date)),
+      n_remained_enrolled = sum(!is.na(enrol_date) & is.na(withdraw_date)),
+      n_substantive = sum(grade_substantive),
+      .groups = "drop")
 }
 
 # TODO: Document fetch_ functions fully in README and in function help

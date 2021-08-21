@@ -31,9 +31,7 @@ to work, or the equivalent tables.
 
 Some of the calculated fields are worth explaining:
 \itemize{
-\item \strong{progress_rate} is the ratio of passing grades (PS, CR, DI, HD) to all grades
-\item \strong{pass_rate} is the ratio of passing grades to all finalised grades
-\item \strong{fail_rate} is the ratio of failing grades (FL, FW) to all grades
-\item \strong{fw_rate} is the ratio of FW (fail by non submission) to all grades
+\item \strong{progress_rate} is the ratio of successful grades to substantive grades
+\item \strong{npe_rate} is the ratio of FW / FNS (fail by non submission) to all grades
 }
 }

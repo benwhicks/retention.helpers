@@ -19,7 +19,7 @@ fetch_student_subject_summary_from_ids(
 a data frame, one row per student per subject per session
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#questioning}{\figure{lifecycle-questioning.svg}{options: alt='[Questioning]'}}}{\strong{[Questioning]}}
 
 Given list of student ids this returns a data table with one row
 per student per subject per session with as much demographic, retention and academic
