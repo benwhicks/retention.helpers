@@ -461,7 +461,7 @@ fetch_academic_summary_by <- function(...) {
     retention.helpers::add_grade_helpers() %>%
     retention.helpers::add_year_from_session() %>%
     dplyr::filter(grade_substantive) %>%
-    dplyr::group_by(...) %>%
+    dplyr::group_by(id, session) %>%
     dplyr::summarise(
       result = dplyr::case_when(
         all(grade_npe) ~ "Total NPE",

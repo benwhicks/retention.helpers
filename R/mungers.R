@@ -368,7 +368,7 @@ add_grade_helpers <- function(d) {
 add_gpa_by <- function(d, ...) {
   d %>%
     dplyr::group_by(...) %>%
-    retention.helpers::add_grade_gpa() %>%
+    retention.helpers::add_grade_gpa() %>% # throws error if grade_gpa already there
     dplyr::summarise(
       gpa = dplyr::if_else(
         sum(grade_gpa, na.rm = TRUE) == 0,
