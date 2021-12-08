@@ -508,4 +508,32 @@ fetch_enrolment_counts_by <- function(...) {
       .groups = "drop")
 }
 
+
+#' Fetch prior attempts
+#'
+#' Given a subject and session finds current enrolments who have
+#' previously attempted the subject
+#'
+#' @param sub
+#' @param sesh
+#'
+#'
+#' @export fetch_prior_attempts
+fetch_prior_attempts <- function(sub, sesh) {
+  retention.data::enrolments |>
+    dplyr::filter(
+      subject == sub,
+      session == sesh,
+      is.na(withdraw_date)) |>
+    dplyr::distinct(id) |>
+    dplyr::inner_join(
+      retention.data::academic |>
+        dplyr::select(id, subject, session, grade)) |>
+    dplyr::filter(subject == sub, session < sesh) |>
+    dplyr::arrange(id, session) |>
+    dplyr::distinct()
+
+}
+
+
 # TODO: Document fetch_ functions fully in README and in function help
