@@ -16,7 +16,14 @@ read_gb_csv <- function(path) {
   off <-  stringr::str_remove(path, "^.*gc_S-") %>% stringr::str_remove("_fullgc_.*$")
   ts <- lubridate::as_date(stringr::str_remove(path, "^.*_fullgc_") %>%
                              stringr::str_extract("[0-9]{4}-[0-9]{2}-[0-9]{2}"))
-  readr::read_csv(path) %>%
+
+  if (stringr::str_detect(path, "csv$")) {
+    d <- readr::read_csv(path)
+  } else {
+    # probably xlsx
+    d <- readxl::read_excel(path)
+  }
+  d %>%
     janitor::remove_empty("cols") %>%
     dplyr::select(
       id = `Student ID`,
@@ -25,7 +32,7 @@ read_gb_csv <- function(path) {
       user_id = Username,
       (dplyr::contains("Score]") & where(is.numeric))) %>%
     dplyr::mutate(id = as.character(id)) %>%  # making sure
-    dplyr::pivot_longer(cols = dplyr::contains("Score]"),
+    tidyr::pivot_longer(cols = dplyr::contains("Score]"),
                         names_to = "assessment_string",
                         values_to = "raw_mark") %>%
     dplyr::mutate(

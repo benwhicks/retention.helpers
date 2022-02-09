@@ -499,3 +499,46 @@ add_subject_context <- function(d) {
       )
     )
 }
+
+
+#' add enrolled
+#'
+#'  @description `r lifecycle::badge('experimental')`
+#'
+#' Adds boolean field if student is enrolled
+#'
+#' @param d a data frame with id, and offering or withdraw_date
+#' @return a data frame
+#'
+#' @export add_grade_fail
+add_enrolled <- function(d) {
+  if ("withdraw_date" %in% names(d)) {
+    d %>%
+      dplyr::mutate(enrolled = is.na(withdraw_date))
+  } else {
+    d %>%
+      dplyr::inner_join(enrolments %>% dplyr::select(id, offering, withdraw_date)) %>%
+      dplyr::mutate(enrolled = is.na(withdraw_date)) %>%
+      dplyr::select(-withdraw_date)
+  }
+}
+
+#' add remained past census
+#'
+#'  @description `r lifecycle::badge('experimental')`
+#'
+#' Adds boolean field if student is past census. This will remove
+#'
+#' @param d a data frame with id, session and offering
+#' @return a data frame
+#'
+#' @export add_grade_fail
+add_remained_past_census <- function(d) {
+  d %>%
+    dplyr::inner_join(enrolments %>% dplyr::select(id, offering, withdraw_date)) %>%
+    dplyr::inner_join(sessions %>% dplyr::select(session, census_date))
+    dplyr::mutate(
+      remained_past_census = is.na(withdraw_date) |
+        withdraw_date > census_date) %>%
+    dplyr::select(-withdraw_date, -census_date)
+}
