@@ -525,11 +525,12 @@ fetch_prior_attempts <- function(sub, sesh) {
       subject == sub,
       session == sesh,
       is.na(withdraw_date)) |>
-    dplyr::distinct(id) |>
+    dplyr::distinct(id, subject) |>
     dplyr::inner_join(
       retention.data::academic |>
-        dplyr::select(id, subject, session, grade)) |>
-    dplyr::filter(subject == sub, session < sesh) |>
+        dplyr::select(id, subject, session, grade),
+      by = c("id", "subject")) |>
+    dplyr::filter(session < sesh) |>
     dplyr::arrange(id, session) |>
     dplyr::distinct()
 
