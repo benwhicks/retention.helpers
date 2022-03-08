@@ -542,3 +542,37 @@ add_remained_past_census <- function(d) {
         withdraw_date > census_date) %>%
     dplyr::select(-withdraw_date, -census_date)
 }
+
+#' GPA
+#'
+#' @description `r lifecycle::badge('experimental')`
+#'
+#' Calculates GPA from a list of grades
+#'
+#' @param grades a list of grades
+#' @return a number, grade point average
+#'
+#' @export gpa
+gpa <- function(grades) {
+  sum(
+    dplyr::case_when(
+      grades == "HD" ~ 7,
+      grades == "A+" ~ 7,
+      grades == "DI" ~ 6,
+      grades == "D"  ~ 6,
+      grades == "CR" ~ 5,
+      grades == "C"  ~ 5,
+      grades == "PS" ~ 4,
+      grades == "P"  ~ 4,
+      grades == "CP" ~ 3,
+      grades == "PT" ~ 3,
+      grades == "CT" ~ 3,
+      grades == "SR" ~ 3,
+      grades == "T"  ~ 3,
+      grades == "XP" ~ 3,
+      TRUE ~ 0
+    )) /
+      sum(
+        grades %in% c("HD", "A+", "DI", "D", "CR", "C", "PS", "P", "CP", "PT", "CT", "SR", "T", "XP"))
+
+}
