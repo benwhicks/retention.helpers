@@ -164,7 +164,8 @@ grade_classifications <- tibble::tribble(
   "FCR",                 0L,             0L,         0L,
   "WD",                 0L,             0L,         0L,
   "DX",                 0L,             0L,         0L,
-  "FNS",                 1L,             0L,         1L
+  "FNS",                 1L,             0L,         1L,
+  "ZZ",                 0L,             0L,         0L
 )
 
 #' grade classifications
@@ -318,7 +319,8 @@ add_grade_fail <- function(d) {
 #'
 #' Takes a data frame with \strong{grade} variable and returns the
 #' same data frame with a \strong{grade_npe} variable, which is
-#' true if grade is FW or FNS; and false otherwise.
+#' true if grade is FW or FNS; and false otherwise. Identical to
+#' add_grade_zf.
 #'
 #' @param d a data frame
 #' @return a data frame
@@ -328,6 +330,26 @@ add_grade_npe <- function(d) {
   d %>%
     dplyr::mutate(
       grade_npe = stringr::str_detect(grade, "FW|FNS")
+    )
+}
+
+#' add grade Zero Fail (ZF)
+#'
+#'  @description `r lifecycle::badge('maturing')`
+#'
+#' Takes a data frame with \strong{grade} variable and returns the
+#' same data frame with a \strong{grade_zf} variable, which is
+#' true if grade is FW or FNS; and false otherwise. Identical to
+#' add_grade_npe.
+#'
+#' @param d a data frame
+#' @return a data frame
+#'
+#' @export add_grade_zf
+add_grade_zf <- function(d) {
+  d %>%
+    dplyr::mutate(
+      grade_zf = stringr::str_detect(grade, "FW|FNS")
     )
 }
 
@@ -350,6 +372,7 @@ add_grade_helpers <- function(d) {
     add_grade_success() %>%
     add_grade_gpa() %>%
     add_grade_fail() %>%
+    add_grade_zf() %>%
     add_grade_npe()
 }
 
