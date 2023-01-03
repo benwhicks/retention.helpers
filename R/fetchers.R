@@ -445,89 +445,27 @@ fetch_subject_demographic_summary <- function(subject_string,
 }
 
 
-#' Fetches a summarised academic data frame
-#'
-#' @description `r lifecycle::badge('questioning')`
-#'
-#' Aggregates the academic table based on grouping variables. Grouping
-#' variables must be in the *academic* table, so *id*, *session*, *subject*
-#' are the probably choices.
-#'
-#' @param ... variables to group output by
-#'
-#' @export fetch_academic_summary_by
-fetch_academic_summary_by <- function(...) {
-  retention.data::academic %>%
-    retention.helpers::add_grade_helpers() %>%
-    retention.helpers::add_year_from_session() %>%
-    dplyr::filter(grade_substantive) %>%
-    dplyr::group_by(id, session) %>%
-    dplyr::summarise(
-      result = dplyr::case_when(
-        all(grade_npe) ~ "Total NPE",
-        any(grade_npe) & mean(grade_success) >= 0.5 ~ "Partial NPE (passing)",
-        any(grade_npe) & mean(grade_success) < 0.5 ~ "Partial NPE (failing)",
-        all(grade_success) ~ "Pass all",
-        all(grade_fail) ~ "Total non-zero fail",
-        mean(grade_success) >= 0.5 ~ "Non-zero fail (passing)",
-        mean(grade_success) < 0.5 ~ "Non-zero fail (failing)"),
-      result_short = dplyr::case_when(
-        all(grade_npe) ~ "Total NPE",
-        any(grade_npe)  ~ "Partial NPE",
-        mean(grade_success) >= 0.5 ~ "Pass",
-        any(grade_fail) ~ "Non-zero fail"),
-      .groups = "drop")
-}
-
-
-#' fetch counts of enrolments / withdrawals
-#'
-#' @description `r lifecycle::badge('questioning')`
-#'
-#' Fetches counts of enrolled subjects, withdrawn subject and substantive grades
-#' by grouping variables (such as *id*, *session*).
-#'
-#' @param ... grouping variables
-#'
-#' @export fetch_enrolment_counts_by
-fetch_enrolment_counts_by <- function(...) {
-  retention.data::enrolments %>%
-    dplyr::distinct(id, session, enrol_date, withdraw_date) %>%
-    dplyr::full_join(
-      retention.data::academic %>%
-        dplyr::select(id, session, grade),
-      by = c("id", "session")
-    ) %>%
-    retention.helpers::add_grade_substantive() %>%
-    dplyr::group_by(...) %>%
-    dplyr::summarise(
-      n_enrolled = sum(grade_substantive | !is.na(enrol_date)),
-      n_withdrawn = sum(!is.na(withdraw_date)),
-      n_remained_enrolled = sum(!is.na(enrol_date) & is.na(withdraw_date)),
-      n_substantive = sum(grade_substantive),
-      .groups = "drop")
-}
-
 
 #' Fetch prior attempts
 #'
 #' Given a subject and session finds current enrolments who have
 #' previously attempted the subject
 #'
-#' @param sub
-#' @param sesh
-#'
+#' @param enr data frame of enrolments
+#' @param aca data frame of academic results
+#' @param sub subject
+#' @param sesh session
 #'
 #' @export fetch_prior_attempts
-fetch_prior_attempts <- function(sub, sesh) {
-  retention.data::enrolments |>
+fetch_prior_attempts <- function(enr, aca, sub, sesh) {
+  enr |>
     dplyr::filter(
       subject == sub,
       session == sesh,
       is.na(withdraw_date)) |>
     dplyr::distinct(id, subject) |>
     dplyr::inner_join(
-      retention.data::academic |>
+      aca |>
         dplyr::select(id, subject, session, grade),
       by = c("id", "subject")) |>
     dplyr::filter(session < sesh) |>
@@ -536,5 +474,3 @@ fetch_prior_attempts <- function(sub, sesh) {
 
 }
 
-
-# TODO: Document fetch_ functions fully in README and in function help

@@ -599,3 +599,63 @@ gpa <- function(grades) {
         grades %in% c("HD", "A+", "DI", "D", "CR", "C", "PS", "P", "CP", "PT", "CT", "SR", "T", "XP"))
 
 }
+
+
+#' summarise academic
+#'
+#' @description `r lifecycle::badge('experimental')`
+#'
+#' Calculates a summary of grades.
+#'
+#' @param d a data frame with grades in it, grouped by relevant
+#' @param include_grades true / false: do you want to include a list of the grades as well?
+#' @param zf_text The text for ZF / NPE / FNS grades
+#' @param zf_long_text The longer text for 'zero fail' or 'non-participating enrolment' or 'FNS'
+#' @return a summarised data frame
+#'
+#' @export summarise_academic
+summarise_academic <- function(d, include_grades = FALSE,
+                               zf_text = "ZF", zf_long_text = "zero fail") {
+    df_out <-
+        d %>%
+        add_grade_helpers() %>%
+        dplyr::filter(grade_substantive) %>%
+        dplyr::summarise(
+            grades = stringr::str_c(sort(grade), collapse = ", "),
+            result_long = factor(
+                dplyr::case_when(
+                    all(grade_zf) ~ paste0("Fail all (total ", zf_text, ")"),
+                    any(grade_zf) & mean(grade_success) >= 0.5 ~ paste0("Passing (some ", zf_text, ")"),
+                    any(grade_zf) & mean(grade_success) < 0.5 ~ paste0("Failing (some ", zf_text, ")"),
+                    all(grade_success) ~ "Pass all",
+                    all(grade_fail) ~ paste0("Fail all (some non-", zf_long_text, "s)"),
+                    mean(grade_success) >= 0.5 ~ paste0("Passing (some non-", zf_long_text,"s)"),
+                    mean(grade_success) < 0.5 ~ paste0("Failing (non-", zf_long_text,"s)"))),
+            result = factor(
+                dplyr::case_when(
+                    all(grade_zf) ~ paste("Total", zf_text),
+                    any(grade_zf)  ~ paste("Partial", zf_text),
+                    mean(grade_success) >= 0.5 ~ "Pass",
+                    mean(grade_success)  < 0.5 ~ paste0("Non-", zf_long_text))),
+            .groups = "drop") %>%
+        mutate(
+            result_long = suppressWarnings(forcats::fct_relevel(result_long,
+                "Pass all",
+                paste0("Passing (some non-", zf_long_text,"s)"),
+                paste0("Passing (some ", zf_text, ")"),
+                paste0("Failing (non-", zf_long_text,"s)"),
+                paste0("Failing (some ", zf_text, ")"),
+                paste0("Fail all (some non-", zf_long_text, "s)"),
+                paste0("Fail all (total ", zf_text,")"))),
+            result = suppressWarnings(forcats::fct_relevel(result, # why would this work better than above??
+                "Pass",
+                paste0("Non-", zf_long_text),
+                paste("Partial", zf_text),
+                paste("Total", zf_text))))
+
+    if (include_grades) {
+        return(df_out)
+    } else {
+        return(df_out %>% select(-grades))
+    }
+}

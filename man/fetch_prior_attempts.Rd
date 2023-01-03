@@ -4,10 +4,16 @@
 \alias{fetch_prior_attempts}
 \title{Fetch prior attempts}
 \usage{
-fetch_prior_attempts(sub, sesh)
+fetch_prior_attempts(enr, aca, sub, sesh)
 }
 \arguments{
-\item{sesh}{}
+\item{enr}{data frame of enrolments}
+
+\item{aca}{data frame of academic results}
+
+\item{sub}{subject}
+
+\item{sesh}{session}
 }
 \description{
 Given a subject and session finds current enrolments who have

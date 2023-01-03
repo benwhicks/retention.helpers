@@ -17,3 +17,8 @@ Imports:
     janitor,
     lifecycle
 Roxygen: list(markdown = TRUE)
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+URL: https://benwhicks.github.io/retention.helpers/

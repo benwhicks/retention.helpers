@@ -1,0 +1,66 @@
+---
+title: "Working-with-academic-data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Working-with-academic-data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(retention.helpers)
+library(tidyverse)
+```
+
+## Leveraging `grade_helpers`
+
+There are a series of useful functions with the prefix `add_grade_*`. The function `add_grade_helpers` adds all of these to any data frame with `grade` as a field:
+
+``` {r}
+some_sample_grades <- 
+    tibble(grade = c("FL", "FNS", "PS", "PS", "HD", "GP", "ZZ"))
+
+some_sample_grades |> 
+    add_grade_helpers()
+```
+
+Note that `grade_zf` and `grade_npe` are identical. This is because sometimes we have used the term *Zero-fail* or *Non-Participating Enrolment* to indicate the same thing - a failing grade where the student also received a mark of 0 (FNS grade).
+
+If you only want a particular field appended to the data frame use `add_grade_*` instead:
+
+``` {r}
+some_sample_grades |> 
+    add_grade_substantive() |> 
+    add_grade_success()
+```
+
+### Summarising grade data
+
+The helpers can be used to calculate aggregates of grades, such as progress rates and GPA, using the retention helpers functions.
+
+``` {r}
+some_sample_grades |> 
+    add_grade_helpers() |> 
+    summarise(
+        progress_rate = sum(grade_success) / sum(grade_substantive),
+        gpa = gpa(grade)
+    )
+```
+
+Additionally, there is a function `retention.helpers::summarise_academic()` that aggregates a set of grades into two descriptions, `result` and `result_long`. This makes more sense to use with a grouped data frame.
+
+``` {r}
+tibble(
+    student = c("A", "A", "B", "B", "B"),
+    grade = c("PS", "DI", "FNS", "FL", "PS")) |> 
+    group_by(student) |> 
+    summarise_academic()
+```
+
