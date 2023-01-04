@@ -19,7 +19,7 @@ library(retention.helpers)
 library(tidyverse)
 ```
 
-## Leveraging `grade_helpers`
+## Leveraging the grade helper functions
 
 There are a series of useful functions with the prefix `add_grade_*`. The function `add_grade_helpers` adds all of these to any data frame with `grade` as a field:
 
@@ -41,9 +41,11 @@ some_sample_grades |>
     add_grade_success()
 ```
 
-### Summarising grade data
+For instance, you might want to count the grade distribution of only substantive (finalised and counting towards progress)
 
-The helpers can be used to calculate aggregates of grades, such as progress rates and GPA, using the retention helpers functions.
+## Summarising grade data
+
+The helpers can be used to calculate aggregates of grades, such as progress rates and GPA (using the `gpa` function).
 
 ``` {r}
 some_sample_grades |> 

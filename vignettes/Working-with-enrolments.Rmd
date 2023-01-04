@@ -1,0 +1,32 @@
+---
+title: "Working-with-enrolments"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Working-with-enrolments}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(retention.helpers)
+```
+
+## Overview
+
+Enrolments come in two levels at Charles Sturt University; course and subject. Course enrolments refer to the students' enrolment in a particular program of study, such as a Bachelor of Nursing. These are stored in the `student_course` table. Subject level enrolments are stored in the `enrolments` table, and correspond to the enrolment records for units of study in a particular session. These should match to the `academic` table that stores the grades for each subject taken (if the student remained past census date). 
+
+### Quirks
+
+The `enrolments` tables also includes other pseudo-subjects, that are place holders for a Leave of Absence. These 'subjects' have the code **XLV0000** and should not be treated like a normal subject. Subjects beginning with the code **SSS...** might also be needed to be treated differently, as they are free subjects and exhibit very different behaviour from students. 
+
+## Counting enrolments
+
+For this example, we set up a toy version of the `student_course` and `enrolments` tables:
+
