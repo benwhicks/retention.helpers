@@ -122,4 +122,10 @@ glimpse(toy_academic)
 
 ## Vignettes
 
-See ‘Articles’ for now - until I work out how to link them properly.
+There are some vignettes to get you started, on:
+
+- [Visualisation of data](docs/articles/Visualisation.html)
+- [Working with enrolment
+  data](docs/articles/Working-with-enrolment-data.html)
+- [Working with academic
+  data](docs/articles/Working-with-academic-data.html)
