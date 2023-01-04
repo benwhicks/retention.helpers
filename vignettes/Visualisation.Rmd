@@ -16,4 +16,84 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(retention.helpers)
+library(tidyverse)
 ```
+
+Renaming relevant toy data to names from the `data.csu.retention` data package.
+
+``` {r}
+academic <- toy_academic_for_interventions
+flags <- toy_flags
+interventions <- toy_interventions
+```
+
+## Visualising a grade distribution
+
+We may like to display grade distributions of the academic data. The data is already set up in factor levels for the major grades, and there are also colour palettes to use; `csu_colours`, `csu_colours_dark` and `csu_colours_light`.
+
+### Basic grade distribution in Charles Sturt colours
+
+``` {r}
+academic |> 
+    add_grade_helpers() |> 
+    filter(grade_substantive) |> 
+    ggplot(aes(x = grade, fill = grade_success)) +
+    geom_histogram(stat = "count") +
+    theme_minimal() +
+    scale_fill_manual(values = csu_colours, guide = NULL)
+```
+
+### Using facets to compare grade distributions
+
+We may also want to compare grade distributions of different groups. For instance, the table `flags` and `interventions` include data on students *flagged* for some concern in the various campaigns, and the immediate results of the intervention. The toy data included in this package is a simulated sample based on a pre-census campaign were students are called if they are flagged as 'at-risk'. Some answer the phone call, and some do not. 
+
+``` {r}
+academic |> 
+    inner_join( # only including subjects from the flags list
+        flags |> 
+            distinct(subject)
+    ) |> 
+    left_join(
+        flags |> 
+            mutate(flagged = TRUE)
+    ) |> 
+    mutate(flagged = replace_na(flagged, FALSE)) |> 
+    mutate(grp = if_else(flagged, "Low engagement", "Engaged")) |> 
+    add_grade_helpers() |> 
+    filter(grade_substantive) |> 
+    ggplot(aes(x = grade, fill = grade_success)) +
+    geom_histogram(stat = "count") +
+    theme_minimal() +
+    scale_fill_manual(values = csu_colours, guide = NULL) +
+    facet_wrap(~grp, scales = "free_y")
+    
+```
+
+``` {r}
+academic |> 
+    inner_join( # only including subjects from the flags list
+        flags |> 
+            distinct(subject)
+    ) |> 
+    left_join(
+        flags |> 
+            mutate(flagged = TRUE)
+    ) |> 
+    mutate(flagged = replace_na(flagged, FALSE)) |> 
+    left_join(interventions) |> 
+    mutate(grp = case_when(
+        !flagged ~ "Engaged",
+        intervention_result == "dialogue" ~ "Spoke with disengaged student",
+        intervention_result == "no dialogue" ~ "Disengaged student did not answer") |> 
+            fct_relevel("Engaged", "Spoke with disengaged student")) |> 
+    add_grade_helpers() |> 
+    filter(grade_substantive) |> 
+    ggplot(aes(x = grade, fill = grp, alpha = grade_success)) +
+    geom_histogram(stat = "count") +
+    theme_minimal() +
+    scale_fill_manual(values = csu_colours, guide = NULL) +
+    scale_alpha_discrete(range = c(1, 0.5), guide = NULL) +
+    facet_wrap(~grp, scales = "free_y")
+    
+```
+

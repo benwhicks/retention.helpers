@@ -84,7 +84,7 @@ students_in_202230 <-
     filter(
         # exclude any courses if already completed
         last_registered_session >= session | is.na(last_registered_session),
-        # 
+        # exclude if they entered the course after the session of interest
         admit_session <= session
         ) |> 
     distinct(id, session, course) |> 
