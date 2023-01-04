@@ -11,121 +11,8 @@ knitr::opts_chunk$set(
   fig.path = "man/figures/README-",
   out.width = "100%"
 )
-```
-
-``` {r creating-dummy-data, echo = FALSE, message = FALSE, warning = FALSE}
 library(tidyverse)
 library(retention.helpers)
-student_ids <- tibble(
-  id = c("1", "2A", "3"),
-  user_id = c("egalois", "enoether", "fnightingale"),
-  email = c("egalois@email.com", "enoether@email.com", "fnight@email.com"),
-  firstname = c("Evariste", "Emmy", "Florence"),
-  lastname = c("Galois", "Noether", "Nightingale")
-)
-
-student_demographics <- tibble(
-  id = c("1", "2A", "3"),
-  firstname = c("Evariste", "Emmy", "Florence"),
-  lastname = c("Galois", "Noether", "Nightingale"),
-  yob_approx = c(1811,1882,1820),
-  gender = c("Male", "Female", "Female"),
-  domesticity = rep("Domestic", 3),
-  atsi = rep("Not Australian Indigenous", 3),
-  parental_education = c("Not University Level", "Not University Level", "University Level"),
-  remoteness = c("Major Cities", "Major Cities", "Inner Regional"),
-  ses = c("Low SES", "Med SES", "High SES") %>% 
-    fct_relevel("Low SES", "Med SES", "High SES")
-)
-
-student_progress <- tibble(
-  id = c("1", "2A", "2A", "3", "3"),
-  session = c(189030, 189030, 189060, 189030, 181960),
-  course = c(rep("Applied Mathematics", 5)),
-  course_level = c(rep("Undergrad", 5)),
-  campus = c("Paris", "Bavaria", "Bavaria", "Hampshire", "Hampshire"),
-  course_enrolment = rep("Active Student", 5),
-  course_faculty = rep("Mathematics", 5),
-  commencing = c("Commencing", "Commencing", "Not Commencing", "Commencing", "Not Commencing"),
-  attendance_type = c("Distance", rep("On Campus", 2), rep("Distance", 2)),
-  progress_rate = c(0.5, 1, 0.8, 1, 1),
-  timestamp = rep(lubridate::ymd('1890-12-18'))
-)
-
-academic <- tibble(
-  id = c(rep("1", 4), 
-         rep("2A", 8),
-         rep("3", 8)),
-  session = c(rep(189030, 4), 
-              rep(189030, 3), rep(189060, 5), 
-              rep(189030, 4), rep(189060, 4)),
-  subject = c("MTH100", "MTH110", "MTH120", "PHL100",
-              "MTH100", "MTH110", "MTH120", "MTH105", "MTH115", "MTH125", "PHL105", "MTH302",
-              "MTH100", "MTH110", "MTH120", "PHL100", "MTH105", "MTH115", "MTH125", "PHL105"),
-  grade = c("AW", "CR", "FL", "AW", 
-            "HD", "DI", "DI", "CR", "PS", "DI", "PS", "FW",
-            "PS", "CR", "CR", "CR", "CR", "PS", "DI", "DI") %>% 
-    fct_relevel("AW", "FW", "FL", "PS", "CR", "DI", "HD")
-)
-
-enrolments <- tibble(
-  id = c(rep("1", 4), 
-         rep("2A", 8),
-         rep("3", 8)),
-  offering = c("MTH100_189030_P_D", 
-               "MTH110_189030_P_D", 
-               "MTH120_189030_P_D", 
-               "PHL100_189030_P_D",
-               "MTH100_189030_B_I", 
-               "MTH110_189030_B_I", 
-               "MTH120_189030_B_I", 
-               "MTH105_189060_B_I", 
-               "MTH115_189060_B_I", 
-               "MTH125_189060_B_I", 
-               "PHL105_189060_B_I", 
-               "MTH302_189060_B_I",
-               "MTH100_189030_P_D", 
-               "MTH110_189030_P_D", 
-               "MTH120_189030_P_D", 
-               "PHL100_189030_P_D", 
-               "MTH105_189060_P_D", 
-               "MTH115_189060_P_D", 
-               "MTH125_189060_P_D", 
-               "PHL105_189060_P_D"),
-  session = c(rep(189030, 4), 
-              rep(189030, 3), rep(189060, 5), 
-              rep(189030, 4), rep(189060, 4)),
-  enrol_date = rep(lubridate::ymd('1890-01-14'), 20),
-  withdraw_date = c(lubridate::ymd('1890-05-01') , rep(NA , 2), lubridate::ymd('1890-04-12'), rep(NA, 16))
-)
-
-offerings <- tibble(
-  offering = c(
-    "MTH100_189030_P_D", "MTH100_189030_B_I",
-    "MTH110_189030_P_D", "MTH110_189030_B_I",
-    "MTH120_189030_P_D", "MTH120_189030_B_I",
-    "PHL100_189030_P_D", "PHL100_189030_B_I",
-    "MTH105_189060_P_D", "MTH105_189060_B_I",
-    "MTH115_189060_P_D", "MTH115_189060_B_I",
-    "MTH125_189060_P_D", "MTH125_189060_B_I",
-    "PHL105_189060_P_D", "PHL105_189060_B_I",
-    "MTH302_189060_P_D", "MTH302_189060_B_I"
-    ),
-  pre_census_focus = c(rep(F, 4), rep(T, 4), rep(F, 6), rep(T, 4))
-) %>% 
-  add_session_from_offering() %>% 
-  add_subject_from_offering() %>% 
-  select(offering, subject, session, pre_census_focus)
-
-flags <- tibble(
-  id = c("1", "1", "1", "2A"),
-  subject = c("MTH120", "PHL100", NA_character_, "MTH302"),
-  session = c(189030, 189030, 189060, 189060),
-  offering = c("MTH120_189030_P_D", "PHL100_189030_P_D", NA_character_, "MTH302_189060_B_I"),
-  campaign = c("pre census", "pre census", "former fail", "pre census"),
-  week = c(3, 3, 1, 3),
-  concern = c("low activity", "non submission", "prior performance", "non submission")
-)
 ```
 
 # retention.helpers
@@ -151,11 +38,11 @@ You should also have the tidyverse installed and loaded to get the most out of t
 library(tidyverse)
 ```
 
-The best way to interface with the data is through the `retention.data` package. This package is not shared publicly, so you will need to obtain a copy of the R Package itself and build the package yourself. This is done in RStudio using `Ctrl-Shift-B` or by going to the _Build_ pane (usually in the top right along with _Environment_) and selecting _Install and Restart_. 
+The best way to interface with the data is through the `data.csu.retention` package. This package is not shared publicly, so you will need to obtain a copy of the R Package itself and build the package yourself. This is done in RStudio using `Ctrl-Shift-B` or by going to the _Build_ pane (usually in the top right along with _Environment_) and selecting _Install and Restart_. 
 
 ## Overview of functions
 
-Most of the functions are split into groups based on their use and prefix. The main families are `add_`, `affix_`,  and `fetch_.`
+Most of the functions are split into groups based on their use and prefix. The main families are `add_` and `read_`.
 
 ### `add_*`
 
@@ -177,135 +64,35 @@ dat_with_offering %>%
 ```
 </details>
 
-### `affix_*`
+### `read_*`
 
-The `affix_` family of functions create new columns in a data frame that are aggregations of the data loaded, based on the groupings in the input data frame. For instance if you feed `affix_demographics` a data frame consisting of *subject* and *session*, it will aggregate by subject and session and append a variety of demogrpahic measures to the data frame.
+The `read_*` style functions operate in a similar fashion to `read_csv` in the tidyverse, expect they are designed to read particular commonly used files and clean them in the process. 
 
-
-<details><summary>See an example of using the `affix_*` functions</summary>
-``` {r affix-example}
-# Given some data with a subject
-dat_with_subject <- tibble(
-  subject = c("MTH100", "MTH302")
-)
-
-dat_with_subject
-
-# Affix aggregated demographic data from the data set and include in this data frame
-dat_with_subject %>% 
-  affix_demographics()
-```
-</details>
-
-### `fetch_*`
-
-The `fetch_` family of functions create a new data frame by joining and wrangling the existing data. These a tables that could just be stored as part of the data package but are redundant. For example, `fetch_students` combines the `student_demographics` and `student_progess` tables into a larger table, attempting to get the most recent relavent data for each student (this is because `student_progress` is tied to a given session).
-
-<details><summary>See an example of using the `fetch_*` functions</summary>
-``` {r fetch-example}
-# Fetching latest student progress data, joined with demographic data 
-fetch_students()
-
-```
-</details>
 
 ## Loading the Data
 
-This package is designed to work _with_ the retention data set. This can be loaded two ways:
-
-You can load from a folder containing the .rda files directly:
-
-``` {r example-loading-data-rda-files, eval = FALSE}
-# ============================================= #
-# Loading via a folder of the .rda files
-# ============================================= #
-library(tidyverse)
-folder_of_rda_files <- file.path('~', 'path', 'to', 'folder') # Change this to where you have them stored
-rda_files <- list.files(folder_of_rda_files, 
-                        pattern = ".rda", 
-                        full.names = TRUE) # This grabs only rda files in folder_of_rda_files
-# Loading the data into your environment
-rda_files %>% 
-  map(load)
-```
-
-Or you can load from the `retention.data` package:
+This package is designed to work _with_ the retention data set. 
 
 ```{r example-loading-data-from-package, eval=FALSE}
 # ============================================= #
 # Loading data via the retention.data package
 # ============================================= #
-library(retention.data)
+library(data.csu.retention)
 ```
 
-The benefit of using the package version of the data is that it comes with in built documentation, using R's usual help syntax, `?`.
+### Toy data
 
-``` {r example-help, eval = FALSE}
-?student_progress
+There is also a sample of this data available (simulated and resampled from the original data, so it does not represent any actual student data). These tables are included in this package and all start with the prefix `toy_`.
+
+``` {r}
+glimpse(toy_academic)
 ```
-
 
 ## Data Model
 
-This is the **intended** end product, but not all tables are complete or tidy yet.
+...coming soon
 
-``` {r data-model, echo = FALSE, message = FALSE}
-# TODO: Copy the data_model.yml file across from the retention.data package to the root of this package whenever this is updated.
-library(datamodelr)
-dm <- dm_read_yaml('data_model.yml')
-gp <- dm_create_graph(dm, rankdir = "RL")
-dm_export_graph(gp, "data-model.png", height = 1200)
-```
+## Vignettes
 
-![](data-model.png)
+See 'Articles' for now - until I work out how to link them properly.
 
-
-## Further Examples
-
-### Wrangling
-
-
-### Adding variables
-
-``` {r example-adding-variables}
-# creating a data frame with offerings
-library(retention.helpers)
-offs <- tibble(offering = c("MTH120_189030_P_D", "PHL100_189030_P_D"))
-offs
-
-# adding the subject and year
-offs %>% 
-  add_subject_from_offering() %>% 
-  add_year_from_offering()
-```
-
-### Joining 
-
-``` {r example-joining}
-# Joining demographics and academic
-student_demographics %>% 
-  inner_join(academic, by = "id") %>% 
-  head()
-
-# Joining progress and academic and flags
-flags %>% 
-  inner_join(academic, by = c("id", "subject", "session"))
-```
-
-### Visualising
-
-``` {r example-visualising}
-# Trying to visualise grade distributions of flagged vs non flagged
-academic %>% 
-  left_join(
-    flags %>% 
-      filter(campaign == "pre census") %>% # only looking at pre census flags
-      select(id, subject, session) %>% # only selecting what is required for joining with academic
-      mutate(flagged = "At risk"), # left join as we want all academic, which creates NA's if no match
-    by = c("id", "subject", "session")) %>%  
-  mutate(flagged = replace_na(flagged, "Not at risk")) %>% # NA's did not appear in the flag table
-  ggplot(aes(grade)) +
-  stat_count(aes(fill = flagged)) +
-  facet_grid(flagged ~ session) +
-  theme_minimal() 
-```
