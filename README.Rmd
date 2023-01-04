@@ -22,6 +22,36 @@ library(retention.helpers)
 
 The goal of retention.helpers is to provide a few functions to help working with the CSU Retention Team's data set, within the R environment.
 
+``` {r echo = FALSE, message = FALSE, warning = FALSE, fig.height = 2}
+toy_academic_for_interventions |> 
+    inner_join( # only including subjects from the flags list
+        toy_flags |> 
+            distinct(subject)
+    ) |> 
+    left_join(
+        toy_flags |> 
+            mutate(flagged = TRUE)
+    ) |> 
+    mutate(flagged = replace_na(flagged, FALSE)) |> 
+    left_join(toy_interventions) |> 
+    mutate(grp = case_when(
+        !flagged ~ "Engaged",
+        intervention_result == "dialogue" ~ "Disengaged, with dialogue",
+        intervention_result == "no dialogue" ~ "Disengaged, no dialogue") |> 
+            fct_relevel("Engaged", "Disengaged, with dialogue")) |> 
+    add_grade_helpers() |> 
+    filter(grade_substantive) |> 
+    ggplot(aes(x = grade, fill = grp, alpha = grade_success)) +
+    geom_histogram(stat = "count") +
+    coord_flip() +
+    theme_minimal() +
+    scale_fill_manual(values = csu_colours, guide = NULL) +
+    scale_alpha_discrete(range = c(1, 0.5), guide = NULL) +
+    facet_wrap(~grp, scales = "free")
+    
+```
+
+
 ## Installation
 
 You can install the development version from [GitHub](https://github.com/) with:

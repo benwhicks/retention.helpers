@@ -39,6 +39,8 @@ glimpse(student_course)
 glimpse(enrolments)
 ```
 
+### Looking at subject enrolments
+
 We might want to look at the active enrolments in a particular session.
 
 ``` {r}
@@ -56,6 +58,8 @@ enrolments |>
     count(id, sort = T) |> 
     rename(n_subjects = n)
 ```
+
+### Joining subject enrolments with course enroments
 
 We might also be interested in what course these students are in. The toy data is primarily for the *Bachelor of Nursing*, however joining directly to the *student_course* table can produce errors if a student has been in multiple courses.
 

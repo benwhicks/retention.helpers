@@ -189,6 +189,80 @@ not.</p>
 <p><img src="Visualisation_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
 </div>
 </div>
+<div class="section level2">
+<h2 id="aggregating-grades-for-visualisation">Aggregating grades for visualisation<a class="anchor" aria-label="anchor" href="#aggregating-grades-for-visualisation"></a>
+</h2>
+<p>The interventions (for the campaign in the toy data at least) are
+performed at a <strong>student-session</strong> level, but grades are
+reported at a <strong>student-session-subject</strong> level. As such it
+can be useful to aggregate grades from
+<strong>student-session-subject</strong> to
+<strong>student-session</strong> level.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># aggregating at student-session progress rate</span></span>
+<span><span class="va">academic_summary_1</span> <span class="op">&lt;-</span> </span>
+<span>    <span class="va">academic</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>session <span class="op">=</span> <span class="st">"Session 1"</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="co"># normally session would be included</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">session</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="../reference/add_grade_helpers.html">add_grade_helpers</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span></span>
+<span>        progress_rate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">grade_success</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">grade_substantive</span><span class="op">)</span>,</span>
+<span>        gpa <span class="op">=</span> <span class="fu"><a href="../reference/gpa.html">gpa</a></span><span class="op">(</span><span class="va">grade</span><span class="op">)</span></span>
+<span>    <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">ungroup</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; `summarise()` has grouped output by 'id'. You can override using the `.groups`</span></span>
+<span><span class="co">#&gt; argument.</span></span>
+<span>    </span>
+<span><span class="va">academic_summary_1</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">interventions</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>grp <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case_when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
+<span>        <span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">intervention_result</span><span class="op">)</span>  <span class="op">~</span> <span class="st">"Engaged"</span>,</span>
+<span>        <span class="va">intervention_result</span> <span class="op">==</span> <span class="st">"dialogue"</span> <span class="op">~</span> <span class="st">"Spoke with disengaged student"</span>,</span>
+<span>        <span class="va">intervention_result</span> <span class="op">==</span> <span class="st">"no dialogue"</span> <span class="op">~</span> <span class="st">"Disengaged student did not answer"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>            <span class="fu"><a href="https://forcats.tidyverse.org/reference/fct_relevel.html" class="external-link">fct_relevel</a></span><span class="op">(</span><span class="st">"Engaged"</span>, <span class="st">"Spoke with disengaged student"</span><span class="op">)</span><span class="op">)</span><span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">gpa</span>, colour <span class="op">=</span> <span class="va">grp</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/stat_ecdf.html" class="external-link">stat_ecdf</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">2</span>, alpha <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/percent_format.html" class="external-link">percent_format</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>                       name <span class="op">=</span> <span class="st">"Cumulative distribution"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="va">csu_colours</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Joining, by = "id"</span></span>
+<span><span class="co">#&gt; Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Please use `linewidth` instead.</span></span>
+<span><span class="co">#&gt; Warning: Removed 333 rows containing non-finite values (`stat_ecdf()`).</span></span></code></pre></div>
+<p><img src="Visualisation_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># aggregating by the custom `summarise_academic` function</span></span>
+<span><span class="va">academic_summary_2</span> <span class="op">&lt;-</span> </span>
+<span>    <span class="va">academic</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>session <span class="op">=</span> <span class="st">"Session 1"</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="co"># normally session would be included</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">session</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="../reference/summarise_academic.html">summarise_academic</a></span><span class="op">(</span><span class="op">)</span>  </span>
+<span>    </span>
+<span><span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="va">academic_summary_2</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Rows: 1,876</span></span>
+<span><span class="co">#&gt; Columns: 4</span></span>
+<span><span class="co">#&gt; $ id          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Student10", "Student1001", "Student1003", "Student1005", …</span></span>
+<span><span class="co">#&gt; $ session     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Session 1", "Session 1", "Session 1", "Session 1", "Sessi…</span></span>
+<span><span class="co">#&gt; $ result_long <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> Pass all, Pass all, Pass all, Passing (some non-zero fails…</span></span>
+<span><span class="co">#&gt; $ result      <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> Pass, Pass, Pass, Pass, Pass, Pass, Pass, Pass, Pass, Non-…</span></span>
+<span></span>
+<span><span class="va">academic_summary_2</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">interventions</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>grp <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case_when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
+<span>        <span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">intervention_result</span><span class="op">)</span>  <span class="op">~</span> <span class="st">"Engaged"</span>,</span>
+<span>        <span class="va">intervention_result</span> <span class="op">==</span> <span class="st">"dialogue"</span> <span class="op">~</span> <span class="st">"Spoke with disengaged student"</span>,</span>
+<span>        <span class="va">intervention_result</span> <span class="op">==</span> <span class="st">"no dialogue"</span> <span class="op">~</span> <span class="st">"Disengaged student did not answer"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>            <span class="fu"><a href="https://forcats.tidyverse.org/reference/fct_relevel.html" class="external-link">fct_relevel</a></span><span class="op">(</span><span class="st">"Engaged"</span>, <span class="st">"Spoke with disengaged student"</span><span class="op">)</span><span class="op">)</span><span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span>, fill <span class="op">=</span> <span class="va">result</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_bar</a></span><span class="op">(</span>stat <span class="op">=</span> <span class="st">"count"</span>, position <span class="op">=</span> <span class="st">"stack"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">grp</span>, scales <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>, axis.title.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_fill_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="va">csu_colours</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Joining, by = "id"</span></span></code></pre></div>
+<p><img src="Visualisation_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
+</div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
 </div>

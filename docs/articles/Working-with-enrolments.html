@@ -150,6 +150,9 @@ rename them to match the names used in the (private)
 <span><span class="co">#&gt; $ offering      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "NRS160_202160_B_D", "NRS163_202160_B_D", "NRS312_202230…</span></span>
 <span><span class="co">#&gt; $ enrol_date    <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span> 2021-05-06, 2021-05-06, 2021-12-08, 2021-12-08, 2021-11…</span></span>
 <span><span class="co">#&gt; $ withdraw_date <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span> 2021-06-09, 2021-06-09, NA, 2021-12-14, NA, NA, NA, 202…</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="looking-at-subject-enrolments">Looking at subject enrolments<a class="anchor" aria-label="anchor" href="#looking-at-subject-enrolments"></a>
+</h3>
 <p>We might want to look at the active enrolments in a particular
 session.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -176,6 +179,10 @@ session.</p>
 <span><span class="co">#&gt;   id       n_subjects</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Student2          2</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="joining-subject-enrolments-with-course-enroments">Joining subject enrolments with course enroments<a class="anchor" aria-label="anchor" href="#joining-subject-enrolments-with-course-enroments"></a>
+</h3>
 <p>We might also be interested in what course these students are in. The
 toy data is primarily for the <em>Bachelor of Nursing</em>, however
 joining directly to the <em>student_course</em> table can produce errors
@@ -233,6 +240,7 @@ can be multiple course codes for a single course.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Student2  <span style="text-decoration: underline;">202</span>230 Bachelor of Nursing                    </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Student4  <span style="text-decoration: underline;">202</span>230 Bachelor of Nursing                    </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Student5  <span style="text-decoration: underline;">202</span>230 Bachelor of Social Science (Psychology)</span></span></code></pre></div>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>

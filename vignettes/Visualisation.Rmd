@@ -97,3 +97,61 @@ academic |>
     
 ```
 
+## Aggregating grades for visualisation
+
+The interventions (for the campaign in the toy data at least) are performed at a **student-session** level, but grades are reported at a **student-session-subject** level. As such it can be useful to aggregate grades from **student-session-subject** to **student-session** level. 
+
+``` {r}
+# aggregating at student-session progress rate
+academic_summary_1 <- 
+    academic |> 
+    mutate(session = "Session 1") |> # normally session would be included
+    group_by(id, session) |>
+    add_grade_helpers() |> 
+    summarise(
+        progress_rate = sum(grade_success) / sum(grade_substantive),
+        gpa = gpa(grade)
+    ) |> 
+    ungroup()
+    
+academic_summary_1 |> 
+    left_join(interventions) |>
+    mutate(grp = case_when(
+        is.na(intervention_result)  ~ "Engaged",
+        intervention_result == "dialogue" ~ "Spoke with disengaged student",
+        intervention_result == "no dialogue" ~ "Disengaged student did not answer") |> 
+            fct_relevel("Engaged", "Spoke with disengaged student"))|> 
+    ggplot(aes(x = gpa, colour = grp)) +
+    stat_ecdf(size = 2, alpha = 0.8) +
+    scale_y_continuous(labels = scales::percent_format(),
+                       name = "Cumulative distribution") +
+    theme_minimal() +
+    scale_color_manual(values = csu_colours)
+```
+
+
+``` {r}
+# aggregating by the custom `summarise_academic` function
+academic_summary_2 <- 
+    academic |> 
+    mutate(session = "Session 1") |> # normally session would be included
+    group_by(id, session) |>
+    summarise_academic()  
+    
+glimpse(academic_summary_2)
+
+academic_summary_2 |> 
+    left_join(interventions) |>
+    mutate(grp = case_when(
+        is.na(intervention_result)  ~ "Engaged",
+        intervention_result == "dialogue" ~ "Spoke with disengaged student",
+        intervention_result == "no dialogue" ~ "Disengaged student did not answer") |> 
+            fct_relevel("Engaged", "Spoke with disengaged student"))|> 
+    ggplot(aes(x = 1, fill = result)) +
+    geom_bar(stat = "count", position = "stack") +
+    facet_wrap(~grp, scales = "free_y") +
+    theme_minimal() +
+    theme(axis.text.x = element_blank(), axis.title.x = element_blank()) +
+    scale_fill_manual(values = csu_colours)
+
+```
