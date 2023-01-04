@@ -116,6 +116,11 @@ glimpse(toy_academic)
 #> $ grade_original <chr> "PS", "DI", "DI", "CR", "CR", "CR", "DI", "DI", "DI", "…
 ```
 
+There are two sets of tables that match. The first toy data set includes
+`toy_academic`, `toy_enrolments` and `toy_student_course`. The second
+set includes `toy_academic_for_interventions`, `toy_flags` and
+`toy_interventions`.
+
 ## Data Model
 
 …coming soon
@@ -125,6 +130,5 @@ glimpse(toy_academic)
 There are some vignettes to get you started, on:
 
 - [Visualisation of data](articles/Visualisation.html)
-- [Working with enrolment
-  data](articles/Working-with-enrolment-data.html)
+- [Working with enrolment data](articles/Working-with-enrolments.html)
 - [Working with academic data](articles/Working-with-academic-data.html)
