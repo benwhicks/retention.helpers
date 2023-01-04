@@ -124,8 +124,7 @@ glimpse(toy_academic)
 
 There are some vignettes to get you started, on:
 
-- [Visualisation of data](docs/articles/Visualisation.html)
+- [Visualisation of data](articles/Visualisation.html)
 - [Working with enrolment
-  data](docs/articles/Working-with-enrolment-data.html)
-- [Working with academic
-  data](docs/articles/Working-with-academic-data.html)
+  data](articles/Working-with-enrolment-data.html)
+- [Working with academic data](articles/Working-with-academic-data.html)
