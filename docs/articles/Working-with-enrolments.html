@@ -129,7 +129,7 @@ rename them to match the names used in the (private)
 <span></span>
 <span><span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="va">student_course</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: 11</span></span>
-<span><span class="co">#&gt; Columns: 13</span></span>
+<span><span class="co">#&gt; Columns: 11</span></span>
 <span><span class="co">#&gt; $ id                      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Student1", "Student2", "Student3", "Student1"…</span></span>
 <span><span class="co">#&gt; $ course                  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Bachelor of Nursing", "Bachelor of Nursing", …</span></span>
 <span><span class="co">#&gt; $ course_code             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "4415NS", "4415NS", "4415NS", "4415NS", "4421F…</span></span>
@@ -139,8 +139,6 @@ rename them to match the names used in the (private)
 <span><span class="co">#&gt; $ admit_session           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 202130, 202130, 202130, 202130, 202230, 202160…</span></span>
 <span><span class="co">#&gt; $ catalog_year            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 2021, 2021, 2021, 2021, 2022, 2021, 2021, 2022…</span></span>
 <span><span class="co">#&gt; $ last_registered_session <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> NA, 202260, NA, NA, NA, NA, NA, 202230, 202260…</span></span>
-<span><span class="co">#&gt; $ latest_leave_session    <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA</span></span>
-<span><span class="co">#&gt; $ gpa                     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.00, 5.29, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00…</span></span>
 <span><span class="co">#&gt; $ points_att              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 192, 0, 0, 0, 0, 0, 72, 40, 0, 144</span></span>
 <span><span class="co">#&gt; $ points_comp             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 176, 0, 0, 0, 0, 0, 72, 40, 0, 72</span></span>
 <span><span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="va">enrolments</span><span class="op">)</span></span>
@@ -221,7 +219,7 @@ can be multiple course codes for a single course.</p>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span></span>
 <span>        <span class="co"># exclude any courses if already completed</span></span>
 <span>        <span class="va">last_registered_session</span> <span class="op">&gt;=</span> <span class="va">session</span> <span class="op">|</span> <span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">last_registered_session</span><span class="op">)</span>,</span>
-<span>        <span class="co"># </span></span>
+<span>        <span class="co"># exclude if they entered the course after the session of interest</span></span>
 <span>        <span class="va">admit_session</span> <span class="op">&lt;=</span> <span class="va">session</span></span>
 <span>        <span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/distinct.html" class="external-link">distinct</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">session</span>, <span class="va">course</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
