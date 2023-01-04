@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(retention.helpers)
+library(tidyverse)
 ```
 
 ## Overview
@@ -28,5 +29,67 @@ The `enrolments` tables also includes other pseudo-subjects, that are place hold
 
 ## Counting enrolments
 
-For this example, we set up a toy version of the `student_course` and `enrolments` tables:
+For this example, we set up a toy version of the `student_course` and `enrolments` tables. We rename them to match the names used in the (private) `data.csu.retention` package.
+
+``` {r}
+student_course <- retention.helpers::toy_student_course
+enrolments <- retention.helpers::toy_enrolments
+
+glimpse(student_course)
+glimpse(enrolments)
+```
+
+We might want to look at the active enrolments in a particular session.
+
+``` {r}
+# gets all enrolments, and counts by student
+enrolments |> 
+    filter(session == 202230) |> 
+    count(id, sort = T) |> 
+    rename(n_subjects = n)
+
+# gets only those who remained in the subject, then counts by student
+enrolments |> 
+    filter(session == 202230, 
+           is.na(withdraw_date) # exluding those that have withdrawn
+           ) |> 
+    count(id, sort = T) |> 
+    rename(n_subjects = n)
+```
+
+We might also be interested in what course these students are in. The toy data is primarily for the *Bachelor of Nursing*, however joining directly to the *student_course* table can produce errors if a student has been in multiple courses.
+
+``` {r}
+enrolments |> 
+    filter(session == 202230) |> 
+    distinct(id, session) |> 
+    inner_join(
+        student_course |> 
+            select(id, course, course_code, 
+                   admit_session, last_registered_session))
+```
+
+We need to select the most appropriate course, based on the `admit_session` (when the student entered the course - however be warned this is sometimes later than their first subjects in the course!), and their `last_registered_session`. Then it might be necessary to ignore the `course_code` field as there can be multiple course codes for a single course.
+
+``` {r}
+students_in_202230 <- 
+    enrolments |> 
+    filter(session == 202230) |> 
+    distinct(id, session) |> 
+    inner_join(
+        student_course |> 
+            select(id, course, course_code, 
+                   admit_session, last_registered_session)) |> 
+    group_by(id, session) |>
+    filter(
+        # exclude any courses if already completed
+        last_registered_session >= session | is.na(last_registered_session),
+        # 
+        admit_session <= session
+        ) |> 
+    distinct(id, session, course) |> 
+    ungroup()
+
+students_in_202230
+```
 
