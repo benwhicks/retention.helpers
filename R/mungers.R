@@ -44,7 +44,7 @@ str_c_sentence_list <- function(s) {
 #' @export add_year_from_session
 add_year_from_session <- function(d) {
   if ("session" %in% names(d)) {
-    d %>%
+    d |>
       dplyr::mutate(year = floor(session / 100))
   } else {
     stop("Variable 'session' not found")
@@ -65,10 +65,10 @@ add_year_from_session <- function(d) {
 #'
 #' @export add_year_from_offering
 add_year_from_offering <- function(d) {
-  d %>%
-    dplyr::mutate(year = offering %>%
-                    stringr::str_remove("^\\w*?_") %>%
-                    stringr::str_extract("^.{4}") %>%
+  d |>
+    dplyr::mutate(year = offering |>
+                    stringr::str_remove("^\\w*?_") |>
+                    stringr::str_extract("^.{4}") |>
                     as.numeric())
 }
 
@@ -87,10 +87,10 @@ add_year_from_offering <- function(d) {
 #' @export add_subject_from_offering
 add_subject_from_offering <- function(d) {
   if ("offering" %in% names(d)) {
-    d %>%
+    d |>
       dplyr::mutate(
-        subject = offering %>%
-          stringr::str_extract("^\\w*?_") %>%
+        subject = offering |>
+          stringr::str_extract("^\\w*?_") |>
           stringr::str_remove("_")
       )
   } else {
@@ -113,11 +113,11 @@ add_subject_from_offering <- function(d) {
 #' @export add_session_from_offering
 add_session_from_offering <- function(d) {
   if ("offering" %in% names(d)) {
-    d %>%
+    d |>
       dplyr::mutate(
-        session = offering %>%
-          stringr::str_remove("^\\w*?_") %>%
-          stringr::str_extract("^[:digit:]{6}") %>%
+        session = offering |>
+          stringr::str_remove("^\\w*?_") |>
+          stringr::str_extract("^[:digit:]{6}") |>
           as.numeric()
       )
   } else {
@@ -201,7 +201,7 @@ add_grade_finalised <- function(d) {
     "add_grade_substantive()",
     details = "Substantive is the correct terminology for CSU and definitions changed to include AW."
   )
-    d %>%
+    d |>
       dplyr::mutate(
         grade_finalised = stringr::str_detect(grade, "FNS|FW|FL|PS|CR|DI|HD")
       )
@@ -220,9 +220,9 @@ add_grade_finalised <- function(d) {
 #'
 #' @export add_grade_substantive
 add_grade_substantive <- function(d) {
-  d %>%
+  d |>
     dplyr::left_join(
-      grade_classifications %>%
+      grade_classifications |>
         dplyr::select(grade, grade_substantive),
       by = "grade")
 }
@@ -239,9 +239,9 @@ add_grade_substantive <- function(d) {
 #'
 #' @export add_grade_success
 add_grade_success <- function(d) {
-  d %>%
+  d |>
     dplyr::left_join(
-      grade_classifications %>%
+      grade_classifications |>
         dplyr::select(grade, grade_success),
       by = "grade")
 }
@@ -260,9 +260,9 @@ add_grade_success <- function(d) {
 #'
 #' @export add_grade_gpa
 add_grade_gpa <- function(d) {
-  d %>%
+  d |>
     dplyr::left_join(
-      grade_classifications %>%
+      grade_classifications |>
         dplyr::select(grade, grade_gpa),
       by = "grade")
 }
@@ -287,7 +287,7 @@ add_grade_pass <- function(d) {
     "add_grade_success()",
     details = "Success is the correct terminology for CSU and some definitions changed."
   )
-  d %>%
+  d |>
     dplyr::mutate(
       grade_pass = stringr::str_detect(grade, "PS|CR|DI|HD")
     )
@@ -306,10 +306,17 @@ add_grade_pass <- function(d) {
 #'
 #' @export add_grade_fail
 add_grade_fail <- function(d) {
-  d %>%
-    dplyr::mutate(
-      grade_fail = stringr::str_detect(grade, "FW|FL|FNS")
-    )
+  d |>
+        dplyr::left_join(
+            grade_classifications |>
+                dplyr::select(grade,
+                              g_gpa = grade_gpa,
+                              g_success = grade_success),
+            by = "grade") |>
+        dplyr::mutate(
+            grade_fail = g_gpa & !g_success
+        ) |>
+        dplyr::select(-g_gpa, -g_success)
 }
 
 
@@ -327,7 +334,7 @@ add_grade_fail <- function(d) {
 #'
 #' @export add_grade_npe
 add_grade_npe <- function(d) {
-  d %>%
+  d |>
     dplyr::mutate(
       grade_npe = stringr::str_detect(grade, "FW|FNS")
     )
@@ -347,7 +354,7 @@ add_grade_npe <- function(d) {
 #'
 #' @export add_grade_zf
 add_grade_zf <- function(d) {
-  d %>%
+  d |>
     dplyr::mutate(
       grade_zf = stringr::str_detect(grade, "FW|FNS")
     )
@@ -367,12 +374,12 @@ add_grade_zf <- function(d) {
 #'
 #' @export add_grade_helpers
 add_grade_helpers <- function(d) {
-  d %>%
-    add_grade_substantive() %>%
-    add_grade_success() %>%
-    add_grade_gpa() %>%
-    add_grade_fail() %>%
-    add_grade_zf() %>%
+  d |>
+    add_grade_substantive() |>
+    add_grade_success() |>
+    add_grade_gpa() |>
+    add_grade_fail() |>
+    add_grade_zf() |>
     add_grade_npe()
 }
 
@@ -389,9 +396,9 @@ add_grade_helpers <- function(d) {
 #'
 #' @export add_gpa_by
 add_gpa_by <- function(d, ...) {
-  d %>%
-    dplyr::group_by(...) %>%
-    retention.helpers::add_grade_gpa() %>% # throws error if grade_gpa already there
+  d |>
+    dplyr::group_by(...) |>
+    retention.helpers::add_grade_gpa() |> # throws error if grade_gpa already there
     dplyr::summarise(
       gpa = dplyr::if_else(
         sum(grade_gpa, na.rm = TRUE) == 0,
@@ -432,10 +439,10 @@ add_gpa_by <- function(d, ...) {
 #'
 #' @export nice_count
 nice_count <- function(d, col) {
-  d %>%
-    dplyr::count({{col}}) %>%
-    janitor::adorn_percentages() %>%
-    janitor::adorn_pct_formatting() %>%
+  d |>
+    dplyr::count({{col}}) |>
+    janitor::adorn_percentages() |>
+    janitor::adorn_pct_formatting() |>
     janitor::adorn_ns()
 }
 
@@ -464,7 +471,7 @@ nice_count <- function(d, col) {
 #' @export add_subject_context
 add_subject_context <- function(d) {
 
-  d %>%
+  d |>
     dplyr::mutate(
       subject_context = stringr::str_c(
 
@@ -536,12 +543,12 @@ add_subject_context <- function(d) {
 #' @export add_grade_fail
 add_enrolled <- function(d) {
   if ("withdraw_date" %in% names(d)) {
-    d %>%
+    d |>
       dplyr::mutate(enrolled = is.na(withdraw_date))
   } else {
-    d %>%
-      dplyr::inner_join(enrolments %>% dplyr::select(id, offering, withdraw_date)) %>%
-      dplyr::mutate(enrolled = is.na(withdraw_date)) %>%
+    d |>
+      dplyr::inner_join(enrolments |> dplyr::select(id, offering, withdraw_date)) |>
+      dplyr::mutate(enrolled = is.na(withdraw_date)) |>
       dplyr::select(-withdraw_date)
   }
 }
@@ -557,12 +564,12 @@ add_enrolled <- function(d) {
 #'
 #' @export add_grade_fail
 add_remained_past_census <- function(d) {
-  d %>%
-    dplyr::inner_join(enrolments %>% dplyr::select(id, offering, withdraw_date)) %>%
-    dplyr::inner_join(sessions %>% dplyr::select(session, census_date))
+  d |>
+    dplyr::inner_join(enrolments |> dplyr::select(id, offering, withdraw_date)) |>
+    dplyr::inner_join(sessions |> dplyr::select(session, census_date))
     dplyr::mutate(
       remained_past_census = is.na(withdraw_date) |
-        withdraw_date > census_date) %>%
+        withdraw_date > census_date) |>
     dplyr::select(-withdraw_date, -census_date)
 }
 
@@ -617,18 +624,18 @@ gpa <- function(grades) {
 summarise_academic <- function(d, include_grades = FALSE,
                                zf_text = "ZF", zf_long_text = "zero fail") {
     df_out <-
-        d %>%
-        add_grade_helpers() %>%
-        dplyr::filter(grade_substantive) %>%
+        d |>
+        add_grade_helpers() |>
+        dplyr::filter(grade_substantive) |>
         dplyr::summarise(
             grades = stringr::str_c(sort(grade), collapse = ", "),
             result_long = factor(
                 dplyr::case_when(
                     all(grade_zf) ~ paste0("Fail all (total ", zf_text, ")"),
                     any(grade_zf) & mean(grade_success) >= 0.5 ~ paste0("Passing (some ", zf_text, ")"),
+                    all(grade_fail) & any(grade_zf) ~ paste0("Fail all (some non-", zf_long_text, "s)"),
                     any(grade_zf) & mean(grade_success) < 0.5 ~ paste0("Failing (some ", zf_text, ")"),
                     all(grade_success) ~ "Pass all",
-                    all(grade_fail) ~ paste0("Fail all (some non-", zf_long_text, "s)"),
                     mean(grade_success) >= 0.5 ~ paste0("Passing (some non-", zf_long_text,"s)"),
                     mean(grade_success) < 0.5 ~ paste0("Failing (non-", zf_long_text,"s)"))),
             result = factor(
@@ -637,7 +644,7 @@ summarise_academic <- function(d, include_grades = FALSE,
                     any(grade_zf)  ~ paste("Partial", zf_text),
                     mean(grade_success) >= 0.5 ~ "Pass",
                     mean(grade_success)  < 0.5 ~ paste0("Non-", zf_long_text))),
-            .groups = "drop") %>%
+            .groups = "drop") |>
         mutate(
             result_long = suppressWarnings(forcats::fct_relevel(result_long,
                 "Pass all",
@@ -656,6 +663,6 @@ summarise_academic <- function(d, include_grades = FALSE,
     if (include_grades) {
         return(df_out)
     } else {
-        return(df_out %>% select(-grades))
+        return(df_out |> select(-grades))
     }
 }

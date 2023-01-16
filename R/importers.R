@@ -13,8 +13,8 @@
 #' @export read_gb_csv
 read_gb_csv <- function(path) {
   # TODO: Handle SY/US grades somehow. Currently they are dropped
-  off <-  stringr::str_remove(path, "^.*gc_S-") %>% stringr::str_remove("_fullgc_.*$")
-  ts <- lubridate::as_date(stringr::str_remove(path, "^.*_fullgc_") %>%
+  off <-  stringr::str_remove(path, "^.*gc_S-") |> stringr::str_remove("_fullgc_.*$")
+  ts <- lubridate::as_date(stringr::str_remove(path, "^.*_fullgc_") |>
                              stringr::str_extract("[0-9]{4}-[0-9]{2}-[0-9]{2}"))
 
   if (stringr::str_detect(path, "csv$")) {
@@ -23,30 +23,30 @@ read_gb_csv <- function(path) {
     # probably xlsx
     d <- readxl::read_excel(path)
   }
-  d %>%
-    janitor::remove_empty("cols") %>%
+  d |>
+    janitor::remove_empty("cols") |>
     dplyr::select(
       id = `Student ID`,
       firstname = `First Name`,
       lastname = `Last Name`,
       user_id = Username,
-      (dplyr::contains("Score]") & where(is.numeric))) %>%
-    dplyr::mutate(id = as.character(id)) %>%  # making sure
+      (dplyr::contains("Score]") & where(is.numeric))) |>
+    dplyr::mutate(id = as.character(id)) |>  # making sure
     tidyr::pivot_longer(cols = dplyr::contains("Score]"),
                         names_to = "assessment_string",
-                        values_to = "raw_mark") %>%
+                        values_to = "raw_mark") |>
     dplyr::mutate(
       offering = off, date_updated = ts,
-      assessment_name = stringr::str_extract(assessment_string, "^.* \\[" ) %>%
+      assessment_name = stringr::str_extract(assessment_string, "^.* \\[" ) |>
         stringr::str_remove(" \\["),
-      possible = as.numeric(stringr::str_extract(assessment_string, " [0-9]* Score") %>%
+      possible = as.numeric(stringr::str_extract(assessment_string, " [0-9]* Score") |>
                               stringr::str_remove(" Score")),
       gradebook_id = as.numeric(stringr::str_extract(assessment_string, "[0-9]*$"))
-    ) %>%
-    dplyr::select(-assessment_string) %>%
+    ) |>
+    dplyr::select(-assessment_string) |>
     dplyr::mutate(
       mark = raw_mark / possible,
-      subject = stringr::str_extract(offering, ".{6}")) %>%
+      subject = stringr::str_extract(offering, ".{6}")) |>
     dplyr::select(subject, offering, assessment_name, id, mark, everything())
 }
 
@@ -72,34 +72,36 @@ read_cleaned_gc_xlsx <- function(f) {
   # will need to check 'child_subject_id' for offering
   file_offering <- stringr::str_extract(f, "[A-Z]{3}[0-9]{3}_[0-9]{6}_[A-Z]{1,2}_[A-Z]{1}")
   file_subject <- stringr::str_extract(file_offering, "^[A-Z]{3}[0-9]{3}")
-  file_session <- as.numeric(stringr::str_extract(file_offering, "_[0-9]{6}_") %>% stringr::str_remove_all("_"))
+  file_session <- as.numeric(
+      stringr::str_extract(file_offering, "_[0-9]{6}_") |>
+          stringr::str_remove_all("_"))
   message(stringr::str_c("Extracting: ", file_offering, "; from: "))
   message(f) # helps debugging, remove later
-  file_download <- file.info(f)$mtime %>%
+  file_download <- file.info(f)$mtime |>
     lubridate::as_date()
 
   header_data_raw <- suppressMessages(readxl::read_excel(f, col_names = FALSE, n_max = 5))
   header_data <- suppressWarnings(tibble(
-    gc_title = header_data_raw %>%
-      dplyr::slice(5) %>%
-      dplyr::select(2:ncol(header_data_raw)) %>%
+    gc_title = header_data_raw |>
+      dplyr::slice(5) |>
+      dplyr::select(2:ncol(header_data_raw)) |>
       as.character(),
-    week_due = header_data_raw %>%
-      dplyr::filter(`...1` == "week due") %>%
-      dplyr::select(2:ncol(header_data_raw)) %>%
+    week_due = header_data_raw |>
+      dplyr::filter(`...1` == "week due") |>
+      dplyr::select(2:ncol(header_data_raw)) |>
       as.numeric(),
-    value = header_data_raw %>%
-      dplyr::filter(`...1` == "value") %>%
-      dplyr::select(2:ncol(header_data_raw)) %>%
+    value = header_data_raw |>
+      dplyr::filter(`...1` == "value") |>
+      dplyr::select(2:ncol(header_data_raw)) |>
       as.character(),
-    eai = as.logical(!is.na(header_data_raw %>%
-                              dplyr::filter(`...1` == "eai") %>%
+    eai = as.logical(!is.na(header_data_raw |>
+                              dplyr::filter(`...1` == "eai") |>
                               dplyr::select(2:ncol(header_data_raw)))),
-    threshold_mark = header_data_raw %>%
-      dplyr::filter(`...1` == "threshold mark") %>%
-      dplyr::select(2:ncol(header_data_raw)) %>%
+    threshold_mark = header_data_raw |>
+      dplyr::filter(`...1` == "threshold mark") |>
+      dplyr::select(2:ncol(header_data_raw)) |>
       as.character()
-  )) %>%
+  )) |>
     dplyr::filter(
       !is.na(week_due) | !is.na(value) | !is.na(eai) | !is.na(threshold_mark)
     )
@@ -110,7 +112,7 @@ read_cleaned_gc_xlsx <- function(f) {
     paste("\n!!!! GC sheet for", file_offering, "adds to", mark_sum, "and not 100 !!!\n"))}
 
   # ===== extracting main data ===== //
-  main_data_raw <- readxl::read_excel(f, skip = 4, col_types = "text") %>%
+  main_data_raw <- readxl::read_excel(f, skip = 4, col_types = "text") |>
     dplyr::select(id = `Student ID`, dplyr::any_of(header_data$gc_title),
                   dplyr::contains("Cumulative Mark"),
                   dplyr::contains("Calculated Grade"),
@@ -119,35 +121,35 @@ read_cleaned_gc_xlsx <- function(f) {
   # overall performance data
   if (any(stringr::str_detect(names(main_data_raw), "Cumulative Mark"))) {
     cumulative_marks <-
-      main_data_raw %>%
-      dplyr::select(id, contains("Cumulative Mark")) %>%
-      tidyr::pivot_longer(-id, names_to = "gc_title", values_to = "score") %>%
-      dplyr::mutate(score = as.numeric(score)) %>%
+      main_data_raw |>
+      dplyr::select(id, contains("Cumulative Mark")) |>
+      tidyr::pivot_longer(-id, names_to = "gc_title", values_to = "score") |>
+      dplyr::mutate(score = as.numeric(score)) |>
       dplyr::mutate(
-        title =  stringr::str_extract(gc_title, "^.* \\[") %>%  stringr::str_remove(" \\["),
-        metric = stringr::str_extract(gc_title, "\\[.*\\]") %>% stringr::str_remove_all("\\[|\\]"),
-        bb_pk1 = stringr::str_extract(gc_title, "\\|.*$") %>%   stringr::str_remove("\\|")) %>%
-      dplyr::mutate(out_of = as.numeric(stringr::str_extract(metric, " [0-9]* "))) %>%
+        title =  stringr::str_extract(gc_title, "^.* \\[") |>  stringr::str_remove(" \\["),
+        metric = stringr::str_extract(gc_title, "\\[.*\\]") |> stringr::str_remove_all("\\[|\\]"),
+        bb_pk1 = stringr::str_extract(gc_title, "\\|.*$") |>   stringr::str_remove("\\|")) |>
+      dplyr::mutate(out_of = as.numeric(stringr::str_extract(metric, " [0-9]* "))) |>
       dplyr::mutate(score_p = score / out_of)
   } else {
     cumulative_marks <-
-      main_data_raw %>%
-      dplyr::select(id) %>%
+      main_data_raw |>
+      dplyr::select(id) |>
       dplyr::slice(0)
     cat("\n!!! No cumulative marks !!!\n")
   }
 
   grades <-
-    main_data_raw %>%
+    main_data_raw |>
     dplyr::select(id,
            dplyr::contains("Calculated Grade"),
-           dplyr::contains("Administrative Override")) %>%
+           dplyr::contains("Administrative Override")) |>
     tidyr::pivot_longer(-id, names_to = "gc_title", values_to = "grade",
-                 values_drop_na = TRUE) %>%
+                 values_drop_na = TRUE) |>
     dplyr::mutate(
-      title =  stringr::str_extract(gc_title, "^.* \\[") %>% string::str_remove(" \\["),
-      metric = stringr::str_extract(gc_title, "\\[.*\\]") %>% string::str_remove_all("\\[|\\]"),
-      bb_pk1 = stringr::str_extract(gc_title, "\\|.*$") %>% string::str_remove("\\|"))
+      title =  stringr::str_extract(gc_title, "^.* \\[") |> stringr::str_remove(" \\["),
+      metric = stringr::str_extract(gc_title, "\\[.*\\]") |> stringr::str_remove_all("\\[|\\]"),
+      bb_pk1 = stringr::str_extract(gc_title, "\\|.*$") |> stringr::str_remove("\\|"))
 
   if (any(grades$grade == "SY")) {
     cat("\n  ---  SY subject --- \n")
@@ -155,34 +157,34 @@ read_cleaned_gc_xlsx <- function(f) {
 
   # will need to deal with SY/US seperately, so dealing with assessment seperately
   numeric_assessment_names <-
-    header_data %>%
-    dplyr::filter(!is.na(value), !is.na(as.numeric(value))) %>%
+    header_data |>
+    dplyr::filter(!is.na(value), !is.na(as.numeric(value))) |>
     dplyr::pull(gc_title)
 
   sy_assessment_names <-
-    header_data %>%
-    dplyr::filter(!is.na(value), is.na(as.numeric(value))) %>%
+    header_data |>
+    dplyr::filter(!is.na(value), is.na(as.numeric(value))) |>
     dplyr::pull(gc_title)
 
   # break into assessments, and other important data, then join
   numeric_assessments <-
-    main_data_raw %>%
-    dplyr::select(id, dplyr::any_of(numeric_assessment_names)) %>%
+    main_data_raw |>
+    dplyr::select(id, dplyr::any_of(numeric_assessment_names)) |>
     tidyr::pivot_longer(
       cols = -id,
       names_to = "gc_title",
-      values_to = "score") %>%
-    dplyr::mutate(score = dplyr::replace_na(as.numeric(score), 0)) %>%
+      values_to = "score") |>
+    dplyr::mutate(score = dplyr::replace_na(as.numeric(score), 0)) |>
     dplyr::mutate(
-      title =  stringr::str_extract(gc_title, "^.* \\[") %>% stringr::str_remove(" \\["),
-      metric = stringr::str_extract(gc_title, "\\[.*\\]") %>%
+      title =  stringr::str_extract(gc_title, "^.* \\[") |> stringr::str_remove(" \\["),
+      metric = stringr::str_extract(gc_title, "\\[.*\\]") |>
         stringr::str_remove_all("\\]|\\["),
-      bb_pk1 = stringr::str_extract(gc_title, "\\|.*$") %>% stringr::str_remove("\\|")) %>%
-    dplyr::left_join(header_data, by = "gc_title") %>%
+      bb_pk1 = stringr::str_extract(gc_title, "\\|.*$") |> stringr::str_remove("\\|")) |>
+    dplyr::left_join(header_data, by = "gc_title") |>
     dplyr::mutate(out_of =
              dplyr::coalesce(
                as.numeric(stringr::str_extract(metric, " [0-9|\\.]* ")),
-               as.numeric(value))) %>%
+               as.numeric(value))) |>
     dplyr::mutate(score_p = score / out_of)
 
   # diagnostics on numeric assessment % scores
@@ -196,21 +198,21 @@ read_cleaned_gc_xlsx <- function(f) {
 
   if (length(sy_assessment_names) > 0) {
     sy_assessments <-
-      main_data_raw %>%
-      dplyr::select(id, dplyr::any_of(sy_assessment_names)) %>%
+      main_data_raw |>
+      dplyr::select(id, dplyr::any_of(sy_assessment_names)) |>
       tidyr::pivot_longer(
         cols = -id,
         names_to = "gc_title",
         values_to = "sy_us"
-      ) %>%
-      dplyr::mutate(sy_us = replace_na(sy_us, "US")) %>%
+      ) |>
+      dplyr::mutate(sy_us = replace_na(sy_us, "US")) |>
       dplyr::mutate(
-        title = stringr::str_extract(gc_title, "^.* \\[") %>%
+        title = stringr::str_extract(gc_title, "^.* \\[") |>
           stringr::str_remove(" \\["),
-        metric = stringr::str_extract(gc_title, "\\[.*\\]") %>%
+        metric = stringr::str_extract(gc_title, "\\[.*\\]") |>
           stringr::str_remove_all("\\[|\\]"),
-        bb_pk1 = stringr::str_extract(gc_title, "\\|.*$") %>%
-          stringr::str_remove("\\|")) %>%
+        bb_pk1 = stringr::str_extract(gc_title, "\\|.*$") |>
+          stringr::str_remove("\\|")) |>
       dplyr::left_join(header_data, by = "gc_title")
     assessments <- dplyr::bind_rows(numeric_assessments, sy_assessment_names)
   } else {
@@ -219,11 +221,11 @@ read_cleaned_gc_xlsx <- function(f) {
 
   # ====== joining all together ==== //
   df_out <-
-    grades %>%
-    dplyr::bind_rows(cumulative_marks) %>%
-    dplyr::bind_rows(assessments) %>%
-    dplyr::select(-gc_title) %>%
-    dplyr::mutate(subject = file_subject, session = file_session) %>%
+    grades |>
+    dplyr::bind_rows(cumulative_marks) |>
+    dplyr::bind_rows(assessments) |>
+    dplyr::select(-gc_title) |>
+    dplyr::mutate(subject = file_subject, session = file_session) |>
     dplyr::select(subject, session, id, title, week_due, value, eai, threshold_mark, metric,
            everything())
   cat(crayon::green("Complete"), "\n\n")
