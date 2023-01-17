@@ -13,22 +13,22 @@
 #'
 #' @export fetch_students
 fetch_students <- function() {
-  student_ids %>%
-    dplyr::select(-user_id, -email) %>%
+  student_ids |>
+    dplyr::select(-user_id, -email) |>
     dplyr::full_join(
-      student_demographics %>%
+      student_demographics |>
         dplyr::select(-firstname, -lastname)
       , by = "id"
-    ) %>%
+    ) |>
     dplyr::full_join(
-      student_progress %>%
-        dplyr::arrange(desc(session), desc(timestamp)) %>%
-        dplyr::select(-session, -timestamp) %>%
-        dplyr::group_by(id) %>%
-        dplyr::summarise(across(everything(), ~.x[!is.na(.x)][1])) %>%
+      student_progress |>
+        dplyr::arrange(desc(session), desc(timestamp)) |>
+        dplyr::select(-session, -timestamp) |>
+        dplyr::group_by(id) |>
+        dplyr::summarise(across(everything(), ~.x[!is.na(.x)][1])) |>
         dplyr::ungroup()
       , by = "id"
-    ) %>%
+    ) |>
     unique()
 }
 
@@ -59,34 +59,34 @@ fetch_student_session_summary_from_course <- function(course_filter_string = "."
                                                            "low activity",
                                                            "non submission",
                                                            "prior performance")) {
-  stu <- student_progress %>%
+  stu <- student_progress |>
     dplyr::filter(
       stringr::str_detect(course, course_filter_string),
-      course_enrolment_status == "Active Student") %>%
-    dplyr::distinct(id, session, course) %>%
+      course_enrolment_status == "Active Student") |>
+    dplyr::distinct(id, session, course) |>
     dplyr::inner_join(
-      student_demographics %>%
+      student_demographics |>
         dplyr::select(-firstname, -lastname),
-      by = "id") %>%
+      by = "id") |>
     add_year_from_session()
 
-  fla <- flags %>%
-    dplyr::filter(concern %in% concerns) %>%
-    dplyr::inner_join(stu %>% dplyr::distinct(id, session), by = c("id", "session"))
+  fla <- flags |>
+    dplyr::filter(concern %in% concerns) |>
+    dplyr::inner_join(stu |> dplyr::distinct(id, session), by = c("id", "session"))
 
-  aca <- academic %>%
-    dplyr::filter(grade != "TA") %>%
-    dplyr::inner_join(stu %>% dplyr::distinct(id, session), by = c("id", "session")) %>%
+  aca <- academic |>
+    dplyr::filter(grade != "TA") |>
+    dplyr::inner_join(stu |> dplyr::distinct(id, session), by = c("id", "session")) |>
     dplyr::left_join(
-      offerings %>%
-        dplyr::group_by(subject, session) %>%
+      offerings |>
+        dplyr::group_by(subject, session) |>
         dplyr::summarise(heppp = any(pre_census_focus)),
-      by = c("subject", "session")) %>%
+      by = c("subject", "session")) |>
     dplyr::mutate(heppp = tidyr::replace_na(heppp, FALSE))
 
-  aca_summary <- aca %>%
-    retention.helpers::add_grade_helpers() %>%
-    dplyr::group_by(id, session) %>%
+  aca_summary <- aca |>
+    retention.helpers::add_grade_helpers() |>
+    dplyr::group_by(id, session) |>
     dplyr::summarise(
       progress_rate = sum(grade_success, na.rm = T) / sum(grade_substantive, na.rm = T),
       npe_rate = sum(grade_npe, na.rm = T) / sum(grade_substantive, na.rm = T),
@@ -101,30 +101,30 @@ fetch_student_session_summary_from_course <- function(course_filter_string = "."
     dplyr::mutate(dplyr::across(.fns = ~ifelse(is.infinite(.), NA, .))) |>
     ungroup()
 
-  missed_by_heppp <- aca %>%
-    dplyr::group_by(id, session) %>%
-    dplyr::summarise(any_heppp = any(heppp)) %>%
-    dplyr::filter(!any_heppp) %>%
-    dplyr::mutate(not_watched = "No tracked subjects") %>%
+  missed_by_heppp <- aca |>
+    dplyr::group_by(id, session) |>
+    dplyr::summarise(any_heppp = any(heppp)) |>
+    dplyr::filter(!any_heppp) |>
+    dplyr::mutate(not_watched = "No tracked subjects") |>
     dplyr::select(-any_heppp)
 
-  dat <- stu %>%
+  dat <- stu |>
     dplyr::left_join(
-      fla %>%
-        group_by(id, session) %>%
+      fla |>
+        group_by(id, session) |>
         summarise(concern = str_c(concern, collapse = ", "),
-                  flags = n()) %>%
+                  flags = n()) |>
         mutate(flagged = "At risk"),
-      by = c("id", "session")) %>%
+      by = c("id", "session")) |>
     dplyr::mutate(
       concern = tidyr::replace_na(concern, "not flagged"),
       flags = tidyr::replace_na(flags, 0),
-      flagged = tidyr::replace_na(flagged, "Not at risk")) %>%
+      flagged = tidyr::replace_na(flagged, "Not at risk")) |>
     dplyr::left_join(
       missed_by_heppp,
-      by = c("id", "session")) %>%
-    dplyr::mutate(flagged = coalesce(not_watched, flagged)) %>%
-    dplyr::select(-not_watched) %>%
+      by = c("id", "session")) |>
+    dplyr::mutate(flagged = coalesce(not_watched, flagged)) |>
+    dplyr::select(-not_watched) |>
     dplyr::left_join(aca_summary, by = c("id", "session"))
 
   dat
@@ -158,34 +158,34 @@ fetch_student_session_summary_from_ids <- function(ids,
                                                            "low activity",
                                                            "non submission",
                                                            "prior performance")) {
-  stu <- student_progress %>%
+  stu <- student_progress |>
     dplyr::filter(
       id %in% ids,
-      course_enrolment_status == "Active Student") %>%
-    dplyr::distinct(id, session, course) %>% # fetches anyone who was active at some point in the session
+      course_enrolment_status == "Active Student") |>
+    dplyr::distinct(id, session, course) |> # fetches anyone who was active at some point in the session
     dplyr::inner_join(
-      student_demographics %>%
+      student_demographics |>
         dplyr::select(-firstname, -lastname),
-      by = "id") %>%
+      by = "id") |>
     add_year_from_session()
 
-  fla <- flags %>%
-    dplyr::filter(concern %in% concerns) %>%
-    dplyr::inner_join(stu %>% dplyr::distinct(id, session), by = c("id", "session"))
+  fla <- flags |>
+    dplyr::filter(concern %in% concerns) |>
+    dplyr::inner_join(stu |> dplyr::distinct(id, session), by = c("id", "session"))
 
-  aca <- academic %>%
-    dplyr::filter(grade != "TA") %>%
-    dplyr::inner_join(stu %>% dplyr::distinct(id, session), by = c("id", "session")) %>%
+  aca <- academic |>
+    dplyr::filter(grade != "TA") |>
+    dplyr::inner_join(stu |> dplyr::distinct(id, session), by = c("id", "session")) |>
     dplyr::left_join(
-      offerings %>%
-        dplyr::group_by(subject, session) %>%
+      offerings |>
+        dplyr::group_by(subject, session) |>
         dplyr::summarise(heppp = any(pre_census_focus)),
-      by = c("subject", "session")) %>%
+      by = c("subject", "session")) |>
     dplyr::mutate(heppp = tidyr::replace_na(heppp, FALSE))
 
-  aca_summary <- aca %>%
-    retention.helpers::add_grade_helpers() %>%
-    dplyr::group_by(id, session) %>%
+  aca_summary <- aca |>
+    retention.helpers::add_grade_helpers() |>
+    dplyr::group_by(id, session) |>
     dplyr::summarise(
       progress_rate = sum(grade_success, na.rm = T) / sum(grade_substantive, na.rm = T),
       npe_rate = sum(grade_npe, na.rm = T) / sum(grade_substantive, na.rm = T),
@@ -200,30 +200,30 @@ fetch_student_session_summary_from_ids <- function(ids,
     dplyr::mutate(dplyr::across(.fns = ~ifelse(is.infinite(.), NA, .))) |>
     ungroup()
 
-  missed_by_heppp <- aca %>%
-    dplyr::group_by(id, session) %>%
-    dplyr::summarise(any_heppp = any(heppp)) %>%
-    dplyr::filter(!any_heppp) %>%
-    dplyr::mutate(not_watched = "No tracked subjects") %>%
+  missed_by_heppp <- aca |>
+    dplyr::group_by(id, session) |>
+    dplyr::summarise(any_heppp = any(heppp)) |>
+    dplyr::filter(!any_heppp) |>
+    dplyr::mutate(not_watched = "No tracked subjects") |>
     dplyr::select(-any_heppp)
 
-  dat <- stu %>%
+  dat <- stu |>
     dplyr::left_join(
-      fla %>%
-        group_by(id, session) %>%
+      fla |>
+        group_by(id, session) |>
         summarise(concern = str_c(concern, collapse = ", "),
-                  flags = n()) %>%
+                  flags = n()) |>
         mutate(flagged = "At risk"),
-      by = c("id", "session")) %>%
+      by = c("id", "session")) |>
     dplyr::mutate(
       concern = tidyr::replace_na(concern, "not flagged"),
       flags = tidyr::replace_na(flags, 0),
-      flagged = tidyr::replace_na(flagged, "Not at risk")) %>%
+      flagged = tidyr::replace_na(flagged, "Not at risk")) |>
     dplyr::left_join(
       missed_by_heppp,
-      by = c("id", "session")) %>%
-    dplyr::mutate(flagged = coalesce(not_watched, flagged)) %>%
-    dplyr::select(-not_watched) %>%
+      by = c("id", "session")) |>
+    dplyr::mutate(flagged = coalesce(not_watched, flagged)) |>
+    dplyr::select(-not_watched) |>
     dplyr::left_join(aca_summary, by = c("id", "session"))
 
   dat
@@ -252,56 +252,146 @@ fetch_student_subject_summary_from_subject <- function(subject_filter_string = "
                                                            "low activity",
                                                            "non submission",
                                                            "prior performance")) {
-  stu <- enrolments %>%
-    add_subject_from_offering() %>%
+  stu <- enrolments |>
+    add_subject_from_offering() |>
     dplyr::filter(
-      stringr::str_detect(subject, subject_filter_string)) %>%
+      stringr::str_detect(subject, subject_filter_string)) |>
     # getting only the latest enrolment activity in the session
-    dplyr::group_by(id, subject, session) %>%
-    dplyr::filter(enrol_date == max(enrol_date)) %>%
-    dplyr::distinct(id, session, subject) %>%
+    dplyr::group_by(id, subject, session) |>
+    dplyr::filter(enrol_date == max(enrol_date)) |>
+    dplyr::distinct(id, session, subject) |>
     dplyr::inner_join(
-      student_demographics %>%
+      student_demographics |>
         dplyr::select(-firstname, -lastname),
-      by = "id") %>%
+      by = "id") |>
     add_year_from_session()
 
-  fla <- flags %>%
-    dplyr::filter(concern %in% concerns) %>%
+  fla <- flags |>
+    dplyr::filter(concern %in% concerns) |>
     dplyr::inner_join(
-      stu %>%
+      stu |>
         dplyr::distinct(id, session, subject),
       by = c("id", "session", "subject"))
 
-  aca <- academic %>%
-    dplyr::filter(grade != "TA") %>%
+  aca <- academic |>
+    dplyr::filter(grade != "TA") |>
     dplyr::inner_join(
-      stu %>%
+      stu |>
         dplyr::distinct(id, session, subject),
-      by = c("id", "session", "subject")) %>%
+      by = c("id", "session", "subject")) |>
     dplyr::left_join(
-      offerings %>%
-        dplyr::group_by(subject, session) %>%
+      offerings |>
+        dplyr::group_by(subject, session) |>
         dplyr::summarise(pre_census_focus = any(pre_census_focus)),
-      by = c("subject", "session")) %>%
+      by = c("subject", "session")) |>
     dplyr::mutate(pre_census_focus = tidyr::replace_na(pre_census_focus, FALSE))
 
 
-  dat <- stu %>%
+  dat <- stu |>
     dplyr::left_join(
-      fla %>%
-        group_by(id, session, subject) %>%
+      fla |>
+        group_by(id, session, subject) |>
         summarise(concern = str_c(concern, collapse = ", "),
-                  flags = n()) %>%
+                  flags = n()) |>
         mutate(flagged = "At risk"),
-      by = c("id", "session", "subject")) %>%
+      by = c("id", "session", "subject")) |>
     dplyr::mutate(
       concern = tidyr::replace_na(concern, "not flagged"),
       flags = tidyr::replace_na(flags, 0),
-      flagged = tidyr::replace_na(flagged, "Not at risk")) %>%
+      flagged = tidyr::replace_na(flagged, "Not at risk")) |>
     dplyr::left_join(aca, by = c("id", "session", "subject"))
 
   dat
+}
+
+#' Fetch former fails
+#'
+#' @description `r lifecycle::badge('experimental')`
+#'
+#' Given a session this fetches students that have failed 50% or more of their subjects
+#' in the previous 1 - 3 sessions. This function collects the session results together, based
+#' on `n_prior_sessions`. So if `n_prior_sessions == 2`, then it looks at the results in the
+#' two prior major sessions (30, 60, 90) together.
+#'
+#' @param session Session code - former fails depend on the two previous sessions
+#' @return a data frame, one row per student
+#'
+#' @export fetch_former_fails
+fetch_former_fails <- function(this_session, n_prior_sessions = 3) {
+    prior_sessions <- dplyr::case_when(
+        this_session %% 100 == 30 ~ c(this_session - 100, this_session - 70, this_session - 40),
+        this_session %% 100 == 60 ~ c(this_session - 100, this_session - 70, this_session - 30),
+        this_session %% 100 == 90 ~ c(this_session - 100, this_session - 60, this_session - 30),
+    )
+
+    if (n_prior_sessions < 3) {
+        prior_sessions <- prior_sessions[1:n_prior_sessions]
+    }
+    enrl <- enrolments  |>
+        dplyr::filter(is.na(withdraw_date),
+               session %in% prior_sessions) |>
+        dplyr::distinct(id, offering, session) |>
+        dplyr::filter(!stringr::str_detect(offering, "XLV")) |>
+        dplyr::group_by(id, session) |>
+        dplyr::summarise(n = dplyr::n(), subs = stringr::str_c(offering, collapse = ", ")) |>
+        dplyr::ungroup()
+
+    pass_summary <- academic |>
+        dplyr::filter(session %in% prior_sessions) |>
+        add_grade_helpers() |>
+        dplyr::group_by(id) |>
+        dplyr::summarise(
+            active_sessions = stringr::str_c(sort(unique(session)), collapse = "; "),
+            enrolled = dplyr::n(),
+            completed = sum(grade_substantive),
+            passed = sum(grade_success)) |>
+        dplyr::mutate(progress_rate = passed / completed) |>
+        dplyr::arrange()
+
+    # Getting leaves of absence
+    leaves_of_absence <- enrolments |>
+        dplyr::filter(session == this_session, is.na(withdraw_date)) |>
+        dplyr::group_by(id) |>
+        dplyr::filter(enrol_date == max(enrol_date)) |>
+        dplyr::filter(any(stringr::str_detect(offering, "XLV0000"))) |>
+        dplyr::mutate(n = dplyr::n()) |>
+        dplyr::filter(n == 1) |>
+        dplyr::select(id, offering, session, enrol_date)
+
+    current_students <-
+        enrolments |>
+        dplyr::filter(session == this_session,
+                      is.na(withdraw_date),
+                      !stringr::str_detect(offering, "XLV0000")) |>
+        dplyr::anti_join(leaves_of_absence |> dplyr::distinct(id)) |>
+        dplyr::group_by(id) |>
+        dplyr::summarise(
+            current_n_enrolled = dplyr::n(),
+            current_enrolments = stringr::str_c(sort(subject), collapse = "; ")
+        )
+
+    dat <-
+        current_students |>
+        dplyr::inner_join(
+            pass_summary |>
+                dplyr::select(id, active_prior_sessions = active_sessions,
+                       dplyr::everything())) |>
+        dplyr::mutate(
+            status = dplyr::case_when(
+                completed <= 1 ~ 'Not enough subjects',
+                progress_rate > 0.5 ~ "Not at risk",
+                progress_rate == 0.5 ~ "Low risk",
+                progress_rate > 0.3 ~ "Medium risk",
+                progress_rate <= 0.3 ~ "High risk"
+            )
+        ) |>
+        dplyr::mutate(
+            status = status |>
+                forcats::fct_relevel(c("Not enough subjects", "Not at risk", "Low risk", "Medium risk", "High risk"))) |>
+            dplyr::select(id, status, dplyr::everything()) |>
+        dplyr::arrange(dplyr::desc(status))
+
+    return(dat)
 }
 
 
@@ -329,53 +419,53 @@ fetch_student_subject_summary_from_ids <- function(ids,
                                                            "prior performance")) {
   # TODO: Need to adjust this to match student id filtering
   # TODO: Add export
-  stu <- enrolments %>%
-    add_subject_from_offering() %>%
+  stu <- enrolments |>
+    add_subject_from_offering() |>
     dplyr::filter(
-      stringr::str_detect(subject, subject_filter_string)) %>%
+      stringr::str_detect(subject, subject_filter_string)) |>
     # getting only the latest enrolment activity in the session
-    dplyr::group_by(id, subject, session) %>%
-    dplyr::filter(enrol_date == max(enrol_date)) %>%
-    dplyr::distinct(id, session, subject) %>%
+    dplyr::group_by(id, subject, session) |>
+    dplyr::filter(enrol_date == max(enrol_date)) |>
+    dplyr::distinct(id, session, subject) |>
     dplyr::inner_join(
-      student_demographics %>%
+      student_demographics |>
         dplyr::select(-firstname, -lastname, -postcode, -yob_approx),
-      by = "id") %>%
+      by = "id") |>
     add_year_from_session()
 
-  fla <- flags %>%
-    dplyr::filter(concern %in% concerns) %>%
+  fla <- flags |>
+    dplyr::filter(concern %in% concerns) |>
     dplyr::inner_join(
-      stu %>%
+      stu |>
         dplyr::distinct(id, session, subject),
       by = c("id", "session", "subject"))
 
-  aca <- academic %>%
-    dplyr::filter(grade != "TA") %>%
+  aca <- academic |>
+    dplyr::filter(grade != "TA") |>
     dplyr::inner_join(
-      stu %>%
+      stu |>
         dplyr::distinct(id, session, subject),
-      by = c("id", "session", "subject")) %>%
+      by = c("id", "session", "subject")) |>
     dplyr::left_join(
-      offerings %>%
-        dplyr::group_by(subject, session) %>%
+      offerings |>
+        dplyr::group_by(subject, session) |>
         dplyr::summarise(pre_census_focus = any(pre_census_focus)),
-      by = c("subject", "session")) %>%
+      by = c("subject", "session")) |>
     dplyr::mutate(pre_census_focus = tidyr::replace_na(pre_census_focus, FALSE))
 
 
-  dat <- stu %>%
+  dat <- stu |>
     dplyr::left_join(
-      fla %>%
-        group_by(id, session, subject) %>%
+      fla |>
+        group_by(id, session, subject) |>
         summarise(concern = str_c(concern, collapse = ", "),
-                  flags = n()) %>%
+                  flags = n()) |>
         mutate(flagged = "At risk"),
-      by = c("id", "session", "subject")) %>%
+      by = c("id", "session", "subject")) |>
     dplyr::mutate(
       concern = tidyr::replace_na(concern, "not flagged"),
       flags = tidyr::replace_na(flags, 0),
-      flagged = tidyr::replace_na(flagged, "Not at risk")) %>%
+      flagged = tidyr::replace_na(flagged, "Not at risk")) |>
     dplyr::left_join(aca, by = c("id", "session", "subject"))
 
   dat
@@ -401,29 +491,29 @@ fetch_subject_demographic_summary <- function(subject_string,
                                               sessions = NULL,
                                               include_withdrawn = FALSE,
                                               domestic_only = TRUE) {
-  stu_dat <- enrolments %>%
-    add_subject_from_offering() %>%
+  stu_dat <- enrolments |>
+    add_subject_from_offering() |>
     dplyr::filter(
       stringr::str_detect(subject, subject_string),
       ifelse(is.null(sessions), TRUE, session %in% sessions),
       ifelse(include_withdrawn, TRUE, is.na(withdraw_date))
-      ) %>%
-    dplyr::distinct(id, subject, session) %>%
+      ) |>
+    dplyr::distinct(id, subject, session) |>
     dplyr::inner_join(
-      student_demographics %>%
-        dplyr::select(id, domesticity, atsi, nesb, ses, remoteness, parental_education) %>%
+      student_demographics |>
+        dplyr::select(id, domesticity, atsi, nesb, ses, remoteness, parental_education) |>
         dplyr::filter(ifelse(domestic_only, domesticity == "Domestic", TRUE)),
       by = "id")
 
   if (by_session) {
-    grp_dat <- stu_dat %>%
+    grp_dat <- stu_dat |>
       dplyr::group_by(subject, session)
   } else {
-    grp_dat <- stu_dat %>%
+    grp_dat <- stu_dat |>
       dplyr::group_by(subject)
   }
 
-   grp_dat %>%
+   grp_dat |>
     dplyr::summarise(
       low_ses = sum(ses == "Low SES"),
       low_ses_pc =
