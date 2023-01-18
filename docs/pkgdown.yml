@@ -2,10 +2,11 @@ pandoc: 2.19.2
 pkgdown: 2.0.7
 pkgdown_sha: ~
 articles:
+  data: data.html
   Visualisation: Visualisation.html
   Working-with-academic-data: Working-with-academic-data.html
   Working-with-enrolments: Working-with-enrolments.html
-last_built: 2023-01-04T21:49Z
+last_built: 2023-01-18T11:15Z
 urls:
   reference: https://benwhicks.github.io/retention.helpers/reference
   article: https://benwhicks.github.io/retention.helpers/articles

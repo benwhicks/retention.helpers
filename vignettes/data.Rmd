@@ -1,0 +1,215 @@
+---
+title: "The Data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+library(retention.helpers)
+library(tidyverse)
+```
+
+This article describes data available, for internal Charles Sturt University use, in the following packages: `data.csu.retention`, `data.csu.activity` and `data.csu.exit`. 
+
+## The retention dataset : `data.csu.retention`
+
+This includes data on student demographics, enrolments, academic results, as well as data on the Retention Teams interventions.
+
+## The activity dataset : `data.csu.activity`
+
+This includes LMS activity data on students. It is in a separate dataset due to its large size.
+
+## The exit survey dataset : `data.csu.exit`
+
+This includes data on the exit survey results. It is not commonly used with the other data and is sometimes sensitive so is in a separate dataset. 
+
+# Common design features of the data set
+
+## Common variables
+
+A key part of the cleaning and processing of the data is consistent names for variables throughout the tables. These will be commonly used for as keys for making joins.
+
+* `id` : Unique student ID (*character*). Sometimes a student will have multiple ID's, if they have re-enrolled. In this case the numeric part of the ID is the same, but there is an `A` or a `B` appended at the end. 
+* `session` : Unique ID for the teaching session (*numeric*). The first four digits are the year, the last two correspond to when in the year the session runs. The main three teaching sessions end in 30, 60, 90. E.g. 202230 is the first main teaching session in 2022. 
+* `year` : The calendar year.
+* `subject` : The six character subject code (for a unit of study), in the form of `ABC123`.
+* `offering` : The offering code. An offering is a subject (unit of study) taught in a particular `session` at a particular `campus` delivered in a particular `mode` (Internal or Distinace). The code is in the form `ABC123_202230_PT_I`, denoting the subject, session, campus and mode, separated by `_`. 
+* `campaign` : The particular intervention 'campaign' that this data relates to. Details of these values are outlined in the notes on the [`flags`] table.
+
+## Data freshness
+
+In addition to the tables, there are a collection of timestamps beginning with the prefix `last_updated_*`. These indicate when the data was last updated. 
+
+``` {r}
+data.csu.retention::last_updated_student_opa
+```
+
+# Retention data package tables
+
+The tables in the 
+
+## `academic`
+
+This table gives academic results by student (`id`), `subject` and `session`.
+
+``` {r}
+data.csu.retention::academic |> 
+    slice(1:10) |> 
+    mutate(  # anonymising 
+        id = "student_id", subject = "ABC123", 
+        offering = "ABC123_202230_W_D") |>
+    glimpse()
+```
+
+* `grade` is the final grade the student received for the subject. 
+* `mark` is the percentage score the student achieved. Lots of this data is missing (`r signif(100*mean(is.na(data.csu.retention::academic$mark)),2)`%)
+* `mark_bb` is an attempt to get an estimate the student's mark from the LMS data. A lot of this data is also missing (`r signif(100*mean(is.na(data.csu.retention::academic$mark_bb)),2)`%). If you are looking for a best guess of the mark it is worth coalescing `mark` and `mark_bb`, but so far this data is very incomplete
+* `grade_original` indicates the first grade the student achieved in the subject. Sometimes there is an 'admin override' grade, so if `grade_original` is different to `grade` this indicates that an override has occurred. 
+
+## `academic_details`
+
+This is historic data, only available for the three main sessions in 2019, and only for HEPPP subjects in those sessions. 
+
+``` {r}
+data.csu.retention::academic_details |> 
+    slice(1:10) |> 
+    mutate( # anonymising
+        id = "student_id", subject = "ABC123") |> 
+    glimpse()
+```
+
+* `eai` indicates the mark the student received for their Early Assessment Item.
+* `cm` indicates the students' course mark.
+* `mean_mark` indicates the average mark the student received in all their assessments (unweighted).
+* `submit_ratio` indicates the ratio of assessments submitted to assessments required in the subject. 
+
+## `assessment_marks`
+
+This data collects together assessments, grades and cumulative marks for selected subjects. Each row is a result for a particular assessment item (`title`), for a student `id`, in a given `subject`, in a given `session`. Some marks are numeric and some are categorical (grades, or pass / fail items). 
+
+``` {r}
+data.csu.retention::assessment_marks |> 
+    slice(1:10) |> 
+    mutate( # anonumising
+        subject = "ABC123", id = "student_id", bb_pk1 = "bb_pk") |> 
+    glimpse()
+```
+
+* `title` is the name of the assessment. There are three special items, *Calculated Grade*, *Administrative Override* and *Cumulative Mark*. *Calculated Grade* is not an assessment mark, but rather the students' final grade, as it appears in the LMS (this may not always match the official grade). If the grade was overwritten, this is stored as an *Administrative Override*. *Cumulative Mark* is the numeric mark that the student received, from their weighted assessment marks, used to calculate their grade.
+* `week_due` is the week the assessment was due. 
+* `value` is the value of the assessment (its contribution to a total of 100 marks for the *Cumulative Mark*). Some assessments are required to pass, but have no weighting, and will have a `value` of 0.
+* `eai` indicated if the assessment item was used as an **Early Assessment Item** as part of a pre census campaign to identify disengaged students.
+* `threshold_mark` includes a value if the particular assessment item requires a minimum mark in order for the student to pass the subject. A `threshold_mark` of 0 indicates that the item must be submitted, but their is no required numeric value to achieve. 
+* `mertric` indicates how the assessment item is assessed; for instance if it is a numeric score and if so what is it out of. This is taken directly from the assessment item header in the LMS.  
+* `grade` is the assessments grade (if categorical, blank otherwise)
+* `bb_pk1` is the primary key to the LMS data base (Blackboard) that matches the assessment item. It is possible that this will not always match if an academic deletes the item and recreates it. 
+* `score` is the numeric score for the assessment item (if numeric, blank otherwise).
+* `out_of` is the maximum score that could be achieved for the assessment item (if numeric, blank otherwise).
+* `score_p` is the % score of the assessment item (if numeric, blank otherwise).
+* `sy_us` indicates if the assessment item 
+
+## `campus_codes`
+
+In the offering codes (formatted like *ABC123_202230_W_I*) the third component (the *W* in the example here) indicates the campus that the offering is taught from. This table matches these one or two character codes to the campus name.
+
+``` {r}
+data.csu.retention::campus_codes |> glimpse()
+```
+
+## `embedded_tutors`
+
+Part of the Retention Teams interventions is the embedded tutors program. This table is a record of students (`id`) who have attended a tutorial session, for a particular `subject`, in a particular `session`. It does not take into account multiple tutorial sessions for the same subject in the same session.
+
+``` {r}
+data.csu.retention::embedded_tutors |> 
+    mutate( # anonymising
+        id = "student_id", subject = "ABC123"
+    ) |> 
+    glimpse()
+```
+
+## `contact`
+
+A component of the various intervention campaigns run by the Retention Team involve communication with students. This table attempts to draw together records of the different types of contact that have happened, when, with who, and how they went. It is one row per contact attempt, for a particular student `id`, in a `session`, for a `campaign`, at a particular time (`contact_timestamp`).
+
+``` {r}
+data.csu.retention::contact |> 
+    mutate(id = "student_id") |> 
+    glimpse()
+```
+
+* `dialogue` indicates if the outreach team had a meaningful conversation with the student. 
+* `contact_type` is the method of contact, usually *call*, *sms* or *email*.
+* `contact_date` the day the contact was made.
+* `contact_timestamp` is the timestamp of when the contact was recorded (the data is filled out at the end of the conversation, so their might be a little delay).
+* `earliest_flag` indicates the earliest *flag* that the student was contacted for. Sometimes students raise several flags in a given campaign, however the contact is usually initiated for the first flag only.
+* `details` eleborate why the contact was made, and any other notes that were made by the outreach team.
+
+## `enrolments`
+
+A table of the subject enrolment records for each student. It includes when they enrolled in the subject and when they withdrew. This data generally takes about a week to align itself with what actually happened - so beware enrolment movements that are recent. One row per student `id`, per `session`, per `offering`, per `subject` - although it is technically possible that students could be moving in and out of the same subject on the same day.
+
+``` {r}
+data.csu.retention::enrolments |> 
+    slice(1:10) |> 
+    mutate(
+        id = "student_id", subject = "ABC123", 
+        offering = str_c("ABC123", session, "W", "D", sep = "_")
+    ) |> 
+    glimpse()
+```
+
+## `enrolment_summary`
+
+A simplified enrolment table, that just includes numbers of active enrolments at two timepoints in the session. One row per student `id` per `session`.
+
+``` {r}
+data.csu.retention::enrolment_summary |> 
+    slice(1:10) |> 
+    mutate(id = "student_id") |> 
+    glimpse()
+```
+
+* `n_enrolments_2_weeks_in` is the number of subjects the student had active 2 weeks after the commencement of the teaching session.
+* `n_enrolments_post_census` is the number of subjects the student was enrolled in after census.
+
+## `flags`
+
+As part of some of the intervention campaigns students may be **flagged** as 'at-risk' for some reason. This is recorded in the `flags` table. 
+
+## `flags_unticked`
+
+## `interventions`
+
+## `offerings`
+
+## `student_ids`
+
+## `student_demographics`
+
+## `student_course`
+
+## `sessions`
+
+## `subjects`
+
+## `triggers`
+
+
+
+# Activity data package tables
+
+## `activity`
+
+# Exit survey data package tables
+

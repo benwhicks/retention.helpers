@@ -4,6 +4,9 @@
     <loc>https://benwhicks.github.io/retention.helpers/404.html</loc>
   </url>
   <url>
+    <loc>https://benwhicks.github.io/retention.helpers/articles/data.html</loc>
+  </url>
+  <url>
     <loc>https://benwhicks.github.io/retention.helpers/articles/index.html</loc>
   </url>
   <url>
@@ -86,6 +89,9 @@
   </url>
   <url>
     <loc>https://benwhicks.github.io/retention.helpers/reference/csu_colours_paired.html</loc>
+  </url>
+  <url>
+    <loc>https://benwhicks.github.io/retention.helpers/reference/fetch_former_fails.html</loc>
   </url>
   <url>
     <loc>https://benwhicks.github.io/retention.helpers/reference/fetch_prior_attempts.html</loc>

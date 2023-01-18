@@ -174,7 +174,7 @@ read_cleaned_gc_xlsx <- function(f) {
       cols = -id,
       names_to = "gc_title",
       values_to = "score") |>
-    dplyr::mutate(score = dplyr::replace_na(as.numeric(score), 0)) |>
+    dplyr::mutate(score = tidyr::replace_na(as.numeric(score), 0)) |>
     dplyr::mutate(
       title =  stringr::str_extract(gc_title, "^.* \\[") |> stringr::str_remove(" \\["),
       metric = stringr::str_extract(gc_title, "\\[.*\\]") |>
@@ -205,7 +205,7 @@ read_cleaned_gc_xlsx <- function(f) {
         names_to = "gc_title",
         values_to = "sy_us"
       ) |>
-      dplyr::mutate(sy_us = replace_na(sy_us, "US")) |>
+      dplyr::mutate(sy_us = tidyr::replace_na(sy_us, "US")) |>
       dplyr::mutate(
         title = stringr::str_extract(gc_title, "^.* \\[") |>
           stringr::str_remove(" \\["),
@@ -214,7 +214,7 @@ read_cleaned_gc_xlsx <- function(f) {
         bb_pk1 = stringr::str_extract(gc_title, "\\|.*$") |>
           stringr::str_remove("\\|")) |>
       dplyr::left_join(header_data, by = "gc_title")
-    assessments <- dplyr::bind_rows(numeric_assessments, sy_assessment_names)
+    assessments <- dplyr::bind_rows(numeric_assessments, sy_assessments)
   } else {
     assessments <- numeric_assessments
   }
