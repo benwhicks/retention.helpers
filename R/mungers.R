@@ -622,7 +622,8 @@ gpa <- function(grades) {
 #'
 #' @export summarise_academic
 summarise_academic <- function(d, include_grades = FALSE,
-                               zf_text = "ZF", zf_long_text = "zero fail") {
+                               zf_text = "ZF", zf_long_text = "zero fail",
+                               ...) {
     df_out <-
         d |>
         add_grade_helpers() |>
@@ -644,6 +645,7 @@ summarise_academic <- function(d, include_grades = FALSE,
                     any(grade_zf)  ~ paste("Partial", zf_text),
                     mean(grade_success) >= 0.5 ~ "Pass",
                     mean(grade_success)  < 0.5 ~ paste0("Non-", zf_long_text))),
+            ...,
             .groups = "drop") |>
         mutate(
             result_long = suppressWarnings(forcats::fct_relevel(result_long,

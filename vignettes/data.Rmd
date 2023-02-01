@@ -12,6 +12,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+options(rmarkdown.html_vignette.check_title = FALSE)
 ```
 
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
@@ -34,6 +35,13 @@ This includes LMS activity data on students. It is in a separate dataset due to 
 This includes data on the exit survey results. It is not commonly used with the other data and is sometimes sensitive so is in a separate dataset. 
 
 # Common design features of the data set
+
+There are essentially four families of tables in the data:
+
+* __Learning structure__ tables, containing data on the subjects, sessions and other details. These tables include data on the teaching [`sessions`], [`campus_codes`], and what [`offerings`] and [`subjects`] are available.
+* __Student enrolment__ tables. These detail details about the student and their enrolment at the university. Student characteristics are contained in [`student_ids`] and [`student_demographics`], details on their course and subject enrolments are contained in [`student_course`] and [`enrolments`], respectively.
+* __Student learning__ tables. These record what the student does once they are enrolled. Some detail the students [`activity`] on the subject sites through the LMS trace data, and their performance via [`assessment_marks`] and overall subject [`grades`]. Additionally there is some data on if the students decide to [`exit`] the university as to why they have done so.  
+* __Retention team campaign__ tables. These tables record data pertinent to the activities and [`interventions`] of the Retention Team. It includes lists of which students utilised the [`embedded_tutors`], which raised [`flags`] for being at-risk, what [`triggers`] were used to identify at-risk students, and what kind of [`contact`] was made with students. The key table here is the [`interventions`] table, which attempts to summarise all the other tables into one, hopefully practical, place.  
 
 ## Common variables
 
@@ -116,7 +124,7 @@ data.csu.retention::assessment_marks |>
 * `score` is the numeric score for the assessment item (if numeric, blank otherwise).
 * `out_of` is the maximum score that could be achieved for the assessment item (if numeric, blank otherwise).
 * `score_p` is the % score of the assessment item (if numeric, blank otherwise).
-* `sy_us` indicates if the assessment item 
+* `sy_us` indicates a Satisfactory (*SY*) or Unsatisfactory (*US*) grade, if this is how the assessment was marked. 
 
 ## `campus_codes`
 
@@ -169,47 +177,267 @@ data.csu.retention::enrolments |>
     glimpse()
 ```
 
-## `enrolment_summary`
-
-A simplified enrolment table, that just includes numbers of active enrolments at two timepoints in the session. One row per student `id` per `session`.
-
-``` {r}
-data.csu.retention::enrolment_summary |> 
-    slice(1:10) |> 
-    mutate(id = "student_id") |> 
-    glimpse()
-```
-
-* `n_enrolments_2_weeks_in` is the number of subjects the student had active 2 weeks after the commencement of the teaching session.
-* `n_enrolments_post_census` is the number of subjects the student was enrolled in after census.
 
 ## `flags`
 
-As part of some of the intervention campaigns students may be **flagged** as 'at-risk' for some reason. This is recorded in the `flags` table. 
+As part of some of the intervention campaigns students may be **flagged** as 'at-risk' for some reason. This is recorded in the `flags` table. Each row is for a particular `concern`, by student `id`, in a `subject` / `offering`, in a particular `session` for a particular `campaign`. The is also identified by when it occured, however this data has been inconsistently recorded over the years and may be in any of `week`, `flag_timestamp` or `trigger_date`. 
+
+``` {r}
+data.csu.retention::flags |>
+    filter(session == 202230) |> 
+    slice(1:10) |> 
+    mutate(id = "student_id", subject = "ABC123", 
+           offering = str_c("ABC123", session, "W", "D", sep = "_"),
+           concern_detail = "detailed comments") |> 
+    glimpse()
+```
+
+* `campaign` indicates which of the Retention Team campaigns this flag belongs to. The *early low engagement* campaign is run in week two of session and identifies students with no subject site access since beginning of session, and a friendly email is sent. The *pre census* campaign is run in weeks 3 and 4, before census date, and is identifying students at higher risk of failure in a select number of subjects. Students are then contacted by the outreach team. A similar campaign was run in 2020 after census date, and was called the *post census* campaign. The *persistent low engagement* campaign is run just before census date, and is a more strongly worded contact for students with still no subject site access in the days before census date. The *non genuine students* campaign is run after census, and is for very disengaged students who did not withdraw from subjects prior to census. The *former fail* campaign is no longer run by the retention team, but was an early contact of students who had performed poorly in a prior session. 
+* `trigger_date` indicates when the flag was intended to be triggered, such as the due date for an early assessment item.
+* `concern` indicates why the flag was raised. This can depend on the campaign. For the pre census campaign it is usually *low activity* for a period of inactivity on the subject site, or *non submission* for not submitting an early assessment item. For the former fail campaign (no longer running) it is always *prior performance*. For the non genuine students campaign there are variety of concerns, hopefully explaining clearly why the student was put on the list. 
+* `flag_timestamp` indicates when the flag happened, where data available (`r signif(100*mean(!is.na(data.csu.retention::flags$flag_timestamp)),3)`% complete) 
+* `week` indicates the week of the session that the flag was raised. Where `flag_timestamp` is missing this is often there instead.
+* `concern_detail` is any other information pertinent to the flag. 
+* `reason_for_no_upload` indicates a reason why this particular flag was not forwarded onto the outreach team. This is usually because the student has already been flagged in this campaign as at risk. 
 
 ## `flags_unticked`
 
+When students are deemed at risk due to missing an early assessment item, this is checked with the academic. Some students are removed from the flag list (perhaps they had already organised an extension). These students do not appear on the flag list, but do appear on the `flags_unticked` table. This is a work in progress and currently only has data for the sessions: `r str_c(sort(unique(data.csu.retention::flags_unticked$session)), collapse = ", ")`.
+
+``` {r}
+data.csu.retention::flags_unticked |> 
+    mutate(id = "student_id", offering = "ABC123_202230_W_D") |> 
+    glimpse()
+```
+
 ## `interventions`
+
+This table aggregates data from `flags`, `contact`, `embedded_tutors` and other sources to summarise what interventions have been made by the Retention Team and how they went. It is organised as one row per student `id`, per `session`, per `campaign`. 
+
+``` {r}
+data.csu.retention::interventions |> 
+    mutate(id = "student_id", intervention_target = "ABC123_202090_W_D") |> 
+    glimpse()
+```
+
+* `intervention_timestamp` is a timestamp of when the intervention occurred, where available. 
+* `intervention_target` indicates the target of the intervention. This is different for different campaigns. For the pre census campaign, the target will be a list of subjects / offerings that the student was flagged in. For the non genuine students campaign the target will be that students course enrolment, for instance. 
+* `concerns` details a list of the concerns that pertain to this intervention. 
+* `intervention` details what action was taken by the retention team, such as *email* or *call*.
+* `intervention_result` details a short outline of what the result of the intervention was, such as whether or not the outreach team talked to the student.
+* `intervention_details` includes in other information, such as notes that the outreach team may have made. 
 
 ## `offerings`
 
+This includes data on the individual subject offerings. It is one row per `offering`.
+
+``` {r}
+data.csu.retention::offerings |> 
+    slice(1:5) |> 
+    mutate(academic_name = "Bob Katter", academic_email = "bob@csu.edu.au", 
+           academic_id = "bkatter27") |> 
+    glimpse()
+```
+
+* `offering_subject_name` is the name of the subject.
+* `pre_census_focus` indicates if the offering was part of the pre census campaign.
+* `academic_name` is the name of the teaching academic.
+* `academic_name` is the email of the teaching academic. 
+* `academic_id` is the email of the teaching academic. This is sometimes more reliable for matching than the name.
+
 ## `student_ids`
+
+Data on student identifying variables. One row per student `id`, which is the university id. 
+
+``` {r}
+data.csu.retention::student_ids |>
+    names() # this is all identifiable data
+```
+
+* `firstname` and `lastname` are the first and last names of the student. 
+* `user_id` is the students LMS login id. 
+* `email` is the students email. 
+* `phone` their phone number. Format varies. 
+* `first_id` is the first `id` that the student had at Charles Sturt University. 
+* `pidm` is a unique id that should be unique for a given student. This is used to match where `id` variables are different for the same student (due to re-enrolling at a later point in their academic career).
 
 ## `student_demographics`
 
+This table includes the most recent student demographic data, one row per student `id`. 
+
+``` {r}
+data.csu.retention::student_demographics |>
+    slice(1:10) |> 
+    mutate(id = "student_id", firstname = "firstname", lastname = "lastname") |> 
+    glimpse()
+```
+
+* `age` is the students age at the last time they were an active student (well, a best guess at that). Age demographic data should really be done as a snapshot from active students with data from OPA.  
+* `gender` - students gender.
+* `domesticity` indicates if the student is regestered as a domestic student. 
+* `atsi` indicates the students First Nation status. 
+* `nesb` indicates if the student comes from a Non English Speaking Background.
+* `atar_group`, where available, indicates which band of marks the student received for their ATAR in regards to university entrance. This is patchy due to a large proportion of Charles Sturt students coming into university from alternative pathways later in life. 
+* `parental_education` indicates the highest level of education the students parents received. If it is *Not University Level* then the student is regarded as *First in Family*.
+* `ses` is the students Social Economic Status, based on their postcode. 
+* `disability_support_status` indicates if the student has requested support for their disability. 
+* `remoteness` indicates how close to an urban centre the student lived, prior to university. The levels are, from more urban to more remote: *Major Cities*, *Inner Regional*, *Outer Regional*, *Remote*, *Very Remote*.
+
 ## `student_course`
+
+This table includes data on the students enrolment in a particular course (program of study). It is one row per student `id`, per `course`, per `admit_session`. 
+
+``` {r}
+data.csu.retention::student_course |>
+    filter(admit_session == 202030) |> 
+    slice(89:99) |> 
+    mutate(
+        id = "student_id", course = "Course Name", course_code = "10000AB"
+    ) |> 
+    glimpse()
+```
+
+* `course` is the name of the course.
+* `course_code` is the (usually 6 character) course code. Sometimes this changes for the same course so `course` name is usually better for matching. 
+* `course_level` is the level of the course, the most common being *Bachelor Pass* level. 
+* `course_faculty` is the (abbriviated) faculty that the course is run by.
+* `mode` is the delivery mode for the course, *D* for distance, *I* for internal and *M* for mixed.
+* `stud_fee_type`
+* `stud_rate_code`
+* `basis_of_admission` indicates how the student was admitted to the course. 
+* `catalog_year` relates to the commencing (check this) cohort year that the student belongs to. 
+* `last_registered_session` is the last session the student was registered in. Should be blank for continuing students. 
+* `latest_leave_session` records the last session the student took a leave of absence (I think).
+* `gpa` is the students Grade Point Average in this course. 
+* `points_att` is the number of credit points the student has attempted. 
+* `points_comp` is the number of credit points the student has successfully completed. 
 
 ## `sessions`
 
+The sessions table details important dates for the teaching session. One row per `session`.
+
+``` {r}
+data.csu.retention::sessions |> 
+    glimpse()
+```
+
+* `teaching_period_name` is the common name for the teaching session. 
+* `tp` is the shortened version of the common name.
+* `start_date` is the date that teaching commences in the session. 
+* `census_date` is the date that students must unenrol from a subject before accruing a debt. 
+* `end_date` is the last teaching date of the session. 
+* `results_release_date` is the date when results are released, where available. 
+* `length_in_weeks` is the length of the session. 
+
 ## `subjects`
+
+The `subjects` table contains the latest subject level data. Whilst the offering table is tied to a session, this table only grabs the latest data, one row per `subject`. 
+
+``` {r}
+data.csu.retention::subjects |> 
+    glimpse()
+```
+
+* `subject_name` is the name of the subject. 
+* `faculty_name` is the full name of the faculty that teaches the subject. 
+* `faculty` is the abbreviated name of the faculty that teaches the subject. 
+* `school` is the school that teaches the subject. 
 
 ## `triggers`
 
+This table attempts to store data on the triggers used to flag 'at-risk' students in several of the campaigns. It is one row per `offering` per `campaign` per `session`. 
 
+``` {r}
+data.csu.retention::triggers |> 
+    mutate(offering = "ABC123_201930_W_D", subject = "ABC123") |> 
+    glimpse()
+```
+
+* `trigger_date` is the date that the trigger was instigated. 
+* `trigger` is the type of condition used to see if a student was at risk. The most common types in the pre census campaign are *low activity* for inactive use of the LMS and *non submission* for the non submission of an early assessment item.
+* `trigger_detail` includes more detail on the trigger item, where available. 
+* `trigger_title` is the title of the assessment if used. 
+* `trigger_notes` outlines any additional information relevant to the trigger used. 
+* `value` is the % weighting of the assessment item, if that is what was used as a trigger. 
+* `imputed_from_flags` indicates if the trigger information was missing from the Retention Team's campaign data, and was instead imputed from the flag list. This should not happen, but...we work with the data we have. 
 
 # Activity data package tables
 
 ## `activity`
 
+This table is an aggregate of the trace data from the Learning Management System. It aggregates per student `id`, per day (`date`), per subject `offering` site. 
+
+``` {r}
+data.csu.activity::activity |> 
+    slice(1:10) |> 
+    mutate(id = "student_id", offering = "ABC123_202290_W_D") |> 
+    glimpse()
+```
+
+* `date` is the day the data was aggregated. The day changes at midnight, so a student working late one night into the early hours of the next morning would spread that activity of two adjacent days. 
+* `logins` measures how many times the student logged into the subject site.  
+* `clicks` indicates how many times the student clicked on anything in the subject site. 
+* `views` counts how many different pages (items) the student viewed in the subject site. 
+
+### SQL for activity aggregation
+
+This query is run on the Blackboard DDA public schema table. 
+
+``` {sql eval = F}
+/* aa by-day */
+select id                                                           as id,
+       replace(coalesce(child_course_id, course_id), 'S-', '')      as offering,
+       date                                                         as date,
+       count(distinct session_id)                                   as logins,
+       count(session_id)                                            as clicks,
+       count(distinct content_pk1)                                  as views
+
+from (select u.student_id                       as id,
+             cm.course_id                       as course_id,
+             cmchild.course_id                  as child_course_id,
+             aa.session_id                      as session_id,
+             aa.timestamp::date                 as date,
+             aa.content_pk1                     as content_pk1
+      from activity_accumulator aa
+               inner join users u on u.pk1 = aa.user_pk1
+               inner join course_main cm on aa.course_pk1 = cm.pk1
+               inner join course_users cu on cu.crsmain_pk1 = cm.pk1 and u.pk1 = cu.users_pk1
+               left join course_main cmchild on cmchild.pk1 = cu.child_crsmain_pk1
+      where u.student_id is not null
+        and cu.role = 'S'
+        and u.lastname not like '%PreviewUser'
+        and aa.event_type != 'SESSION_TIMEOUT'
+        and cm.course_id similar to 'S-%202290%' 
+        and aa.timestamp::date >= make_date(2023, 2, 1) -- one month at a time
+        and aa.timestamp::date < make_date(2023, 3,  1)
+        ) as tab1
+group by id, offering, date;
+```
+
 # Exit survey data package tables
 
+## `exit`
+
+``` {r}
+data.csu.exit::exit |> 
+    slice(1:10) |>
+    mutate(id = "student_id", name = "name", other_info = "other info") |> 
+    glimpse()
+```
+
+* `date` is the day the form was submitted.
+* `program` is the course code (yes program of study and course are the same at Charles Sturt.)
+* `faculty_program` is the faculty that runs the course.
+* `study_mode` is the self reported mode of study.
+* `contact_request` - did the student want to be contacted regarding their decision?
+* `discuss_further` - only available in more recent surveys, answers the question *Are you willing to be contacted to discuss your CSU experience?*
+* `discuss_csu` - did the student discuss their decision with anyone at CSU?
+* `who_discuss_csu` - who did they discuss their decision with at CSU?
+* `discuss_outside` - did the student discuss their decision with anyone outside of CSU?
+* `who_discuss_outside` - who else did they discuss their decision with?
+* `withdraw_prior_commencement` - did the student withdraw prior to commencing study?
+* `factors_not_to_commence` - reasons for not commencing, selected from a drop down list.
+* `factors_leave` - reasons for leaving, selected from a drop down list.
+* `factors_withdraw` - reasons for withdrawing, selected from a drop down list.
+* `factors` - all of the factors above, collected together.
+* `other_info` contains free text comments.

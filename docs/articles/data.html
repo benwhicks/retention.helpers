@@ -99,6 +99,35 @@ dataset.</p>
 <div class="section level2">
 <h2 id="common-design-features-of-the-data-set">Common design features of the data set<a class="anchor" aria-label="anchor" href="#common-design-features-of-the-data-set"></a>
 </h2>
+<p>There are essentially four families of tables in the data:</p>
+<ul>
+<li>
+<strong>Learning structure</strong> tables, containing data on the
+subjects, sessions and other details. These tables include data on the
+teaching <a href="#sessions"><code>sessions</code></a>, <a href="#campus_codes"><code>campus_codes</code></a>, and what <a href="#offerings"><code>offerings</code></a> and <a href="#subjects"><code>subjects</code></a> are available.</li>
+<li>
+<strong>Student enrolment</strong> tables. These detail details
+about the student and their enrolment at the university. Student
+characteristics are contained in <a href="#student_ids"><code>student_ids</code></a> and <a href="#student_demographics"><code>student_demographics</code></a>,
+details on their course and subject enrolments are contained in <a href="#student_course"><code>student_course</code></a> and <a href="#enrolments"><code>enrolments</code></a>, respectively.</li>
+<li>
+<strong>Student learning</strong> tables. These record what the
+student does once they are enrolled. Some detail the students <a href="#activity"><code>activity</code></a> on the subject sites through
+the LMS trace data, and their performance via <a href="#assessment_marks"><code>assessment_marks</code></a> and overall
+subject [<code>grades</code>]. Additionally there is some data on if the
+students decide to <a href="#exit"><code>exit</code></a> the university
+as to why they have done so.<br>
+</li>
+<li>
+<strong>Retention team campaign</strong> tables. These tables record
+data pertinent to the activities and <a href="#interventions"><code>interventions</code></a> of the Retention
+Team. It includes lists of which students utilised the <a href="#embedded_tutors"><code>embedded_tutors</code></a>, which raised
+<a href="#flags"><code>flags</code></a> for being at-risk, what <a href="#triggers"><code>triggers</code></a> were used to identify at-risk
+students, and what kind of <a href="#contact"><code>contact</code></a>
+was made with students. The key table here is the <a href="#interventions"><code>interventions</code></a> table, which
+attempts to summarise all the other tables into one, hopefully
+practical, place.</li>
+</ul>
 <div class="section level3">
 <h3 id="common-variables">Common variables<a class="anchor" aria-label="anchor" href="#common-variables"></a>
 </h3>
@@ -311,7 +340,9 @@ the assessment item (if numeric, blank otherwise).</li>
 <code>score_p</code> is the % score of the assessment item (if
 numeric, blank otherwise).</li>
 <li>
-<code>sy_us</code> indicates if the assessment item</li>
+<code>sy_us</code> indicates a Satisfactory (<em>SY</em>) or
+Unsatisfactory (<em>US</em>) grade, if this is how the assessment was
+marked.</li>
 </ul>
 </div>
 <div class="section level3">
@@ -429,86 +460,489 @@ same subject on the same day.</p>
 <span><span class="co">#&gt; $ withdraw_date <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2022-09-06, NA, 2022-09-06, 2022-09-06, 2022-09-06, NA,…</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="enrolment_summary">
-<code>enrolment_summary</code><a class="anchor" aria-label="anchor" href="#enrolment_summary"></a>
-</h3>
-<p>A simplified enrolment table, that just includes numbers of active
-enrolments at two timepoints in the session. One row per student
-<code>id</code> per <code>session</code>.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">data.csu.retention</span><span class="fu">::</span><span class="va">enrolment_summary</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"student_id"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Rows: 426,430</span></span>
-<span><span class="co">#&gt; Columns: 4</span></span>
-<span><span class="co">#&gt; Groups: id [1]</span></span>
-<span><span class="co">#&gt; $ id                       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "student_id", "student_id", "student_id", "st…</span></span>
-<span><span class="co">#&gt; $ session                  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 201960, 201975, 201930, 201960, 201990, 20203…</span></span>
-<span><span class="co">#&gt; $ n_enrolments_2_weeks_in  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 0, 2, 3, 1, 1, 0, 1, 0, 1, 1, 2, 2, 2, 2, …</span></span>
-<span><span class="co">#&gt; $ n_enrolments_post_census <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 0, 0, 2, 2, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, …</span></span></code></pre></div>
-<ul>
-<li>
-<code>n_enrolments_2_weeks_in</code> is the number of subjects the
-student had active 2 weeks after the commencement of the teaching
-session.</li>
-<li>
-<code>n_enrolments_post_census</code> is the number of subjects the
-student was enrolled in after census.</li>
-</ul>
-</div>
-<div class="section level3">
 <h3 id="flags">
 <code>flags</code><a class="anchor" aria-label="anchor" href="#flags"></a>
 </h3>
 <p>As part of some of the intervention campaigns students may be
 <strong>flagged</strong> as ‘at-risk’ for some reason. This is recorded
-in the <code>flags</code> table.</p>
+in the <code>flags</code> table. Each row is for a particular
+<code>concern</code>, by student <code>id</code>, in a
+<code>subject</code> / <code>offering</code>, in a particular
+<code>session</code> for a particular <code>campaign</code>. The is also
+identified by when it occured, however this data has been inconsistently
+recorded over the years and may be in any of <code>week</code>,
+<code>flag_timestamp</code> or <code>trigger_date</code>.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">data.csu.retention</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/data.csu.retention/man/flags.html" class="external-link">flags</a></span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">session</span> <span class="op">==</span> <span class="fl">202230</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"student_id"</span>, subject <span class="op">=</span> <span class="st">"ABC123"</span>, </span>
+<span>           offering <span class="op">=</span> <span class="fu"><a href="https://stringr.tidyverse.org/reference/str_c.html" class="external-link">str_c</a></span><span class="op">(</span><span class="st">"ABC123"</span>, <span class="va">session</span>, <span class="st">"W"</span>, <span class="st">"D"</span>, sep <span class="op">=</span> <span class="st">"_"</span><span class="op">)</span>,</span>
+<span>           concern_detail <span class="op">=</span> <span class="st">"detailed comments"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Rows: 10</span></span>
+<span><span class="co">#&gt; Columns: 11</span></span>
+<span><span class="co">#&gt; $ campaign             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "pre census", "pre census", "pre census", "pre ce…</span></span>
+<span><span class="co">#&gt; $ session              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 202230, 202230, 202230, 202230, 202230, 202230, 2…</span></span>
+<span><span class="co">#&gt; $ id                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "student_id", "student_id", "student_id", "studen…</span></span>
+<span><span class="co">#&gt; $ subject              <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "ABC123", "ABC123", "ABC123", "ABC123", "ABC123",…</span></span>
+<span><span class="co">#&gt; $ offering             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "ABC123_202230_W_D", "ABC123_202230_W_D", "ABC123…</span></span>
+<span><span class="co">#&gt; $ trigger_date         <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span> 2022-03-07, 2022-03-07, 2022-03-07, 2022-03-07, …</span></span>
+<span><span class="co">#&gt; $ concern              <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "non submission", "non submission", "non submissi…</span></span>
+<span><span class="co">#&gt; $ flag_timestamp       <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span> 2022-03-10, 2022-03-10, 2022-03-10, 2022-03-10, …</span></span>
+<span><span class="co">#&gt; $ week                 <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA</span></span>
+<span><span class="co">#&gt; $ concern_detail       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "detailed comments", "detailed comments", "detail…</span></span>
+<span><span class="co">#&gt; $ reason_for_no_upload <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA</span></span></code></pre></div>
+<ul>
+<li>
+<code>campaign</code> indicates which of the Retention Team
+campaigns this flag belongs to. The <em>early low engagement</em>
+campaign is run in week two of session and identifies students with no
+subject site access since beginning of session, and a friendly email is
+sent. The <em>pre census</em> campaign is run in weeks 3 and 4, before
+census date, and is identifying students at higher risk of failure in a
+select number of subjects. Students are then contacted by the outreach
+team. A similar campaign was run in 2020 after census date, and was
+called the <em>post census</em> campaign. The <em>persistent low
+engagement</em> campaign is run just before census date, and is a more
+strongly worded contact for students with still no subject site access
+in the days before census date. The <em>non genuine students</em>
+campaign is run after census, and is for very disengaged students who
+did not withdraw from subjects prior to census. The <em>former fail</em>
+campaign is no longer run by the retention team, but was an early
+contact of students who had performed poorly in a prior session.</li>
+<li>
+<code>trigger_date</code> indicates when the flag was intended to be
+triggered, such as the due date for an early assessment item.</li>
+<li>
+<code>concern</code> indicates why the flag was raised. This can
+depend on the campaign. For the pre census campaign it is usually
+<em>low activity</em> for a period of inactivity on the subject site, or
+<em>non submission</em> for not submitting an early assessment item. For
+the former fail campaign (no longer running) it is always <em>prior
+performance</em>. For the non genuine students campaign there are
+variety of concerns, hopefully explaining clearly why the student was
+put on the list.</li>
+<li>
+<code>flag_timestamp</code> indicates when the flag happened, where
+data available (78.8% complete)</li>
+<li>
+<code>week</code> indicates the week of the session that the flag
+was raised. Where <code>flag_timestamp</code> is missing this is often
+there instead.</li>
+<li>
+<code>concern_detail</code> is any other information pertinent to
+the flag.</li>
+<li>
+<code>reason_for_no_upload</code> indicates a reason why this
+particular flag was not forwarded onto the outreach team. This is
+usually because the student has already been flagged in this campaign as
+at risk.</li>
+</ul>
 </div>
 <div class="section level3">
 <h3 id="flags_unticked">
 <code>flags_unticked</code><a class="anchor" aria-label="anchor" href="#flags_unticked"></a>
 </h3>
+<p>When students are deemed at risk due to missing an early assessment
+item, this is checked with the academic. Some students are removed from
+the flag list (perhaps they had already organised an extension). These
+students do not appear on the flag list, but do appear on the
+<code>flags_unticked</code> table. This is a work in progress and
+currently only has data for the sessions: 202230.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">data.csu.retention</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/data.csu.retention/man/flags_unticked.html" class="external-link">flags_unticked</a></span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"student_id"</span>, offering <span class="op">=</span> <span class="st">"ABC123_202230_W_D"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Rows: 599</span></span>
+<span><span class="co">#&gt; Columns: 4</span></span>
+<span><span class="co">#&gt; $ campaign <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "pre census", "pre census", "pre census", "pre census", "pre …</span></span>
+<span><span class="co">#&gt; $ session  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 202230, 202230, 202230, 202230, 202230, 202230, 202230, 20223…</span></span>
+<span><span class="co">#&gt; $ offering <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "ABC123_202230_W_D", "ABC123_202230_W_D", "ABC123_202230_W_D"…</span></span>
+<span><span class="co">#&gt; $ id       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "student_id", "student_id", "student_id", "student_id", "stud…</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="interventions">
 <code>interventions</code><a class="anchor" aria-label="anchor" href="#interventions"></a>
 </h3>
+<p>This table aggregates data from <code>flags</code>,
+<code>contact</code>, <code>embedded_tutors</code> and other sources to
+summarise what interventions have been made by the Retention Team and
+how they went. It is organised as one row per student <code>id</code>,
+per <code>session</code>, per <code>campaign</code>.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">data.csu.retention</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/data.csu.retention/man/interventions.html" class="external-link">interventions</a></span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"student_id"</span>, intervention_target <span class="op">=</span> <span class="st">"ABC123_202090_W_D"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Rows: 27,690</span></span>
+<span><span class="co">#&gt; Columns: 9</span></span>
+<span><span class="co">#&gt; $ id                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "student_id", "student_id", "student_id", "stud…</span></span>
+<span><span class="co">#&gt; $ campaign               <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "early low engagement", "early low engagement",…</span></span>
+<span><span class="co">#&gt; $ session                <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 202090, 202090, 202090, 202090, 202090, 202090,…</span></span>
+<span><span class="co">#&gt; $ intervention_timestamp <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span> 2020-11-24 22:39:30, 2020-11-24 22:39:30, 2020…</span></span>
+<span><span class="co">#&gt; $ intervention_target    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "ABC123_202090_W_D", "ABC123_202090_W_D", "ABC1…</span></span>
+<span><span class="co">#&gt; $ concerns               <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "early low engagement", "early low engagement",…</span></span>
+<span><span class="co">#&gt; $ intervention           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "email", "email", "email", "email", "email", "e…</span></span>
+<span><span class="co">#&gt; $ intervention_result    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "one-way communication", "one-way communication…</span></span>
+<span><span class="co">#&gt; $ intervention_details   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,…</span></span></code></pre></div>
+<ul>
+<li>
+<code>intervention_timestamp</code> is a timestamp of when the
+intervention occurred, where available.</li>
+<li>
+<code>intervention_target</code> indicates the target of the
+intervention. This is different for different campaigns. For the pre
+census campaign, the target will be a list of subjects / offerings that
+the student was flagged in. For the non genuine students campaign the
+target will be that students course enrolment, for instance.</li>
+<li>
+<code>concerns</code> details a list of the concerns that pertain to
+this intervention.</li>
+<li>
+<code>intervention</code> details what action was taken by the
+retention team, such as <em>email</em> or <em>call</em>.</li>
+<li>
+<code>intervention_result</code> details a short outline of what the
+result of the intervention was, such as whether or not the outreach team
+talked to the student.</li>
+<li>
+<code>intervention_details</code> includes in other information,
+such as notes that the outreach team may have made.</li>
+</ul>
 </div>
 <div class="section level3">
 <h3 id="offerings">
 <code>offerings</code><a class="anchor" aria-label="anchor" href="#offerings"></a>
 </h3>
+<p>This includes data on the individual subject offerings. It is one row
+per <code>offering</code>.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">data.csu.retention</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/data.csu.retention/man/offerings.html" class="external-link">offerings</a></span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>academic_name <span class="op">=</span> <span class="st">"Bob Katter"</span>, academic_email <span class="op">=</span> <span class="st">"bob@csu.edu.au"</span>, </span>
+<span>           academic_id <span class="op">=</span> <span class="st">"bkatter27"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Rows: 5</span></span>
+<span><span class="co">#&gt; Columns: 8</span></span>
+<span><span class="co">#&gt; $ offering              <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "ACC100_201990_B_D", "ACC110_201990_B_D", "ECO13…</span></span>
+<span><span class="co">#&gt; $ subject               <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "ACC100", "ACC110", "ECO130", "ITC105", "JST110"</span></span>
+<span><span class="co">#&gt; $ offering_subject_name <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Accounting 1", "Accounting 2", "Business Econom…</span></span>
+<span><span class="co">#&gt; $ session               <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 201990, 201990, 201990, 201990, 201990</span></span>
+<span><span class="co">#&gt; $ pre_census_focus      <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> TRUE, TRUE, TRUE, TRUE, TRUE</span></span>
+<span><span class="co">#&gt; $ academic_name         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Bob Katter", "Bob Katter", "Bob Katter", "Bob K…</span></span>
+<span><span class="co">#&gt; $ academic_email        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "bob@csu.edu.au", "bob@csu.edu.au", "bob@csu.edu…</span></span>
+<span><span class="co">#&gt; $ academic_id           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "bkatter27", "bkatter27", "bkatter27", "bkatter2…</span></span></code></pre></div>
+<ul>
+<li>
+<code>offering_subject_name</code> is the name of the subject.</li>
+<li>
+<code>pre_census_focus</code> indicates if the offering was part of
+the pre census campaign.</li>
+<li>
+<code>academic_name</code> is the name of the teaching
+academic.</li>
+<li>
+<code>academic_name</code> is the email of the teaching
+academic.</li>
+<li>
+<code>academic_id</code> is the email of the teaching academic. This
+is sometimes more reliable for matching than the name.</li>
+</ul>
 </div>
 <div class="section level3">
 <h3 id="student_ids">
 <code>student_ids</code><a class="anchor" aria-label="anchor" href="#student_ids"></a>
 </h3>
+<p>Data on student identifying variables. One row per student
+<code>id</code>, which is the university id.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">data.csu.retention</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/data.csu.retention/man/student_ids.html" class="external-link">student_ids</a></span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># this is all identifiable data</span></span>
+<span><span class="co">#&gt; [1] "id"        "firstname" "lastname"  "user_id"   "email"     "phone"    </span></span>
+<span><span class="co">#&gt; [7] "first_id"  "pidm"</span></span></code></pre></div>
+<ul>
+<li>
+<code>firstname</code> and <code>lastname</code> are the first and
+last names of the student.</li>
+<li>
+<code>user_id</code> is the students LMS login id.</li>
+<li>
+<code>email</code> is the students email.</li>
+<li>
+<code>phone</code> their phone number. Format varies.</li>
+<li>
+<code>first_id</code> is the first <code>id</code> that the student
+had at Charles Sturt University.</li>
+<li>
+<code>pidm</code> is a unique id that should be unique for a given
+student. This is used to match where <code>id</code> variables are
+different for the same student (due to re-enrolling at a later point in
+their academic career).</li>
+</ul>
 </div>
 <div class="section level3">
 <h3 id="student_demographics">
 <code>student_demographics</code><a class="anchor" aria-label="anchor" href="#student_demographics"></a>
 </h3>
+<p>This table includes the most recent student demographic data, one row
+per student <code>id</code>.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">data.csu.retention</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/data.csu.retention/man/student_demographics.html" class="external-link">student_demographics</a></span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"student_id"</span>, firstname <span class="op">=</span> <span class="st">"firstname"</span>, lastname <span class="op">=</span> <span class="st">"lastname"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Rows: 10</span></span>
+<span><span class="co">#&gt; Columns: 13</span></span>
+<span><span class="co">#&gt; $ id                        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "student_id", "student_id", "student_id", "s…</span></span>
+<span><span class="co">#&gt; $ firstname                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "firstname", "firstname", "firstname", "firs…</span></span>
+<span><span class="co">#&gt; $ lastname                  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "lastname", "lastname", "lastname", "lastnam…</span></span>
+<span><span class="co">#&gt; $ age                       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 52, 54, 47, 55, 47, 51, 53, 45, 47, 36</span></span>
+<span><span class="co">#&gt; $ gender                    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Male", "Female", "Male", "Male", "Male", "F…</span></span>
+<span><span class="co">#&gt; $ domesticity               <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Domestic", "Domestic", "Domestic", "Domesti…</span></span>
+<span><span class="co">#&gt; $ atsi                      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Not Australian First Nations", "Not Austral…</span></span>
+<span><span class="co">#&gt; $ nesb                      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Not NESB", "Not NESB", "Not NESB", "Not NES…</span></span>
+<span><span class="co">#&gt; $ atar_group                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Not Recent School Leaver", "Not Recent Scho…</span></span>
+<span><span class="co">#&gt; $ parental_education        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "University Level", "Unknown highest parenta…</span></span>
+<span><span class="co">#&gt; $ ses                       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Low SES", "High SES", "High SES", "Low SES"…</span></span>
+<span><span class="co">#&gt; $ disability_support_status <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "no Disability", "no Disability", "no Disabi…</span></span>
+<span><span class="co">#&gt; $ remoteness                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "(2) Outer Regional Australia", "(0) Major C…</span></span></code></pre></div>
+<ul>
+<li>
+<code>age</code> is the students age at the last time they were an
+active student (well, a best guess at that). Age demographic data should
+really be done as a snapshot from active students with data from
+OPA.<br>
+</li>
+<li>
+<code>gender</code> - students gender.</li>
+<li>
+<code>domesticity</code> indicates if the student is regestered as a
+domestic student.</li>
+<li>
+<code>atsi</code> indicates the students First Nation status.</li>
+<li>
+<code>nesb</code> indicates if the student comes from a Non English
+Speaking Background.</li>
+<li>
+<code>atar_group</code>, where available, indicates which band of
+marks the student received for their ATAR in regards to university
+entrance. This is patchy due to a large proportion of Charles Sturt
+students coming into university from alternative pathways later in
+life.</li>
+<li>
+<code>parental_education</code> indicates the highest level of
+education the students parents received. If it is <em>Not University
+Level</em> then the student is regarded as <em>First in
+Family</em>.</li>
+<li>
+<code>ses</code> is the students Social Economic Status, based on
+their postcode.</li>
+<li>
+<code>disability_support_status</code> indicates if the student has
+requested support for their disability.</li>
+<li>
+<code>remoteness</code> indicates how close to an urban centre the
+student lived, prior to university. The levels are, from more urban to
+more remote: <em>Major Cities</em>, <em>Inner Regional</em>, <em>Outer
+Regional</em>, <em>Remote</em>, <em>Very Remote</em>.</li>
+</ul>
 </div>
 <div class="section level3">
 <h3 id="student_course">
 <code>student_course</code><a class="anchor" aria-label="anchor" href="#student_course"></a>
 </h3>
+<p>This table includes data on the students enrolment in a particular
+course (program of study). It is one row per student <code>id</code>,
+per <code>course</code>, per <code>admit_session</code>.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">data.csu.retention</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/data.csu.retention/man/student_course.html" class="external-link">student_course</a></span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">admit_session</span> <span class="op">==</span> <span class="fl">202030</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice</a></span><span class="op">(</span><span class="fl">89</span><span class="op">:</span><span class="fl">99</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
+<span>        id <span class="op">=</span> <span class="st">"student_id"</span>, course <span class="op">=</span> <span class="st">"Course Name"</span>, course_code <span class="op">=</span> <span class="st">"10000AB"</span></span>
+<span>    <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Rows: 11</span></span>
+<span><span class="co">#&gt; Columns: 16</span></span>
+<span><span class="co">#&gt; $ id                      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "student_id", "student_id", "student_id", "stu…</span></span>
+<span><span class="co">#&gt; $ course                  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Course Name", "Course Name", "Course Name", "…</span></span>
+<span><span class="co">#&gt; $ course_code             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "10000AB", "10000AB", "10000AB", "10000AB", "1…</span></span>
+<span><span class="co">#&gt; $ course_level            <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Graduate Certificate", "Graduate Certificate"…</span></span>
+<span><span class="co">#&gt; $ course_faculty          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FOBJBS", "FOBJBS", "FOBJBS", "FOBJBS", "FOBJB…</span></span>
+<span><span class="co">#&gt; $ mode                    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "D", "D", "D", "D", "D", "D", "D", "D", "D", "…</span></span>
+<span><span class="co">#&gt; $ stud_fee_type           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "D", "D", "P", "D", "P", "P", "D", "P", "P", "…</span></span>
+<span><span class="co">#&gt; $ stud_rate_code          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "HXCSS", "HXCSD", "PC44D", "HXCSD", "PC44D", "…</span></span>
+<span><span class="co">#&gt; $ basis_of_admission      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Work and life experience", "A higher educatio…</span></span>
+<span><span class="co">#&gt; $ admit_session           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 202030, 202030, 202030, 202030, 202030, 202030…</span></span>
+<span><span class="co">#&gt; $ catalog_year            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020…</span></span>
+<span><span class="co">#&gt; $ last_registered_session <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 202090, 202060, NA, 202090, 202030, 202060, 20…</span></span>
+<span><span class="co">#&gt; $ latest_leave_session    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, 202160, 20…</span></span>
+<span><span class="co">#&gt; $ gpa                     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 6.25, 4.75, 0.00, 5.75, 4.75, 4.00, 4.67, 4.75…</span></span>
+<span><span class="co">#&gt; $ points_att              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 32, 32, 0, 32, 32, 48, 32, 32, 0, 32, 16</span></span>
+<span><span class="co">#&gt; $ points_comp             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 32, 32, 0, 32, 32, 16, 32, 32, 0, 16, 8</span></span></code></pre></div>
+<ul>
+<li>
+<code>course</code> is the name of the course.</li>
+<li>
+<code>course_code</code> is the (usually 6 character) course code.
+Sometimes this changes for the same course so <code>course</code> name
+is usually better for matching.</li>
+<li>
+<code>course_level</code> is the level of the course, the most
+common being <em>Bachelor Pass</em> level.</li>
+<li>
+<code>course_faculty</code> is the (abbriviated) faculty that the
+course is run by.</li>
+<li>
+<code>mode</code> is the delivery mode for the course, <em>D</em>
+for distance, <em>I</em> for internal and <em>M</em> for mixed.</li>
+<li><code>stud_fee_type</code></li>
+<li><code>stud_rate_code</code></li>
+<li>
+<code>basis_of_admission</code> indicates how the student was
+admitted to the course.</li>
+<li>
+<code>catalog_year</code> relates to the commencing (check this)
+cohort year that the student belongs to.</li>
+<li>
+<code>last_registered_session</code> is the last session the student
+was registered in. Should be blank for continuing students.</li>
+<li>
+<code>latest_leave_session</code> records the last session the
+student took a leave of absence (I think).</li>
+<li>
+<code>gpa</code> is the students Grade Point Average in this
+course.</li>
+<li>
+<code>points_att</code> is the number of credit points the student
+has attempted.</li>
+<li>
+<code>points_comp</code> is the number of credit points the student
+has successfully completed.</li>
+</ul>
 </div>
 <div class="section level3">
 <h3 id="sessions">
 <code>sessions</code><a class="anchor" aria-label="anchor" href="#sessions"></a>
 </h3>
+<p>The sessions table details important dates for the teaching session.
+One row per <code>session</code>.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">data.csu.retention</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/data.csu.retention/man/sessions.html" class="external-link">sessions</a></span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Rows: 120</span></span>
+<span><span class="co">#&gt; Columns: 8</span></span>
+<span><span class="co">#&gt; $ session              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 201815, 201830, 201845, 201860, 201875, 201890, 2…</span></span>
+<span><span class="co">#&gt; $ teaching_period_name <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Term 1", "Session 1", "Term 2", "Session 2", "Te…</span></span>
+<span><span class="co">#&gt; $ tp                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "T1", "S1", "T2", "S2", "T3", "S3", "T1", "S1", "…</span></span>
+<span><span class="co">#&gt; $ start_date           <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2018-01-08, 2018-02-26, 2018-05-21, 2018-07-09, …</span></span>
+<span><span class="co">#&gt; $ census_date          <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2018-02-02, 2018-03-23, 2018-06-08, 2018-08-03, …</span></span>
+<span><span class="co">#&gt; $ end_date             <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2018-04-27, 2018-06-15, 2018-08-10, 2018-10-26, …</span></span>
+<span><span class="co">#&gt; $ results_release_date <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> NA, 2018-07-06, NA, 2018-11-09, NA, 2019-03-01, …</span></span>
+<span><span class="co">#&gt; $ length_in_weeks      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "16 weeks", "16 weeks", "12 weeks", "16 weeks", "…</span></span></code></pre></div>
+<ul>
+<li>
+<code>teaching_period_name</code> is the common name for the
+teaching session.</li>
+<li>
+<code>tp</code> is the shortened version of the common name.</li>
+<li>
+<code>start_date</code> is the date that teaching commences in the
+session.</li>
+<li>
+<code>census_date</code> is the date that students must unenrol from
+a subject before accruing a debt.</li>
+<li>
+<code>end_date</code> is the last teaching date of the session.</li>
+<li>
+<code>results_release_date</code> is the date when results are
+released, where available.</li>
+<li>
+<code>length_in_weeks</code> is the length of the session.</li>
+</ul>
 </div>
 <div class="section level3">
 <h3 id="subjects">
 <code>subjects</code><a class="anchor" aria-label="anchor" href="#subjects"></a>
 </h3>
+<p>The <code>subjects</code> table contains the latest subject level
+data. Whilst the offering table is tied to a session, this table only
+grabs the latest data, one row per <code>subject</code>.</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">data.csu.retention</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/data.csu.retention/man/subjects.html" class="external-link">subjects</a></span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Rows: 2,803</span></span>
+<span><span class="co">#&gt; Columns: 5</span></span>
+<span><span class="co">#&gt; $ subject      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "EMG201", "EMG208", "MGT579", "PHL402", "PHL502", "MGM505…</span></span>
+<span><span class="co">#&gt; $ subject_name <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Standing Operating Procedures: Training and Exercise Dev…</span></span>
+<span><span class="co">#&gt; $ faculty      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FoBJaBS", "FoBJaBS", "FoBJaBS", "FoAaE", "FoAaE", "FoBJa…</span></span>
+<span><span class="co">#&gt; $ school       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Australian Graduate School of Policing and Security", "A…</span></span>
+<span><span class="co">#&gt; $ faculty_name <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Faculty of Business, Justice and Behavioural Sciences", …</span></span></code></pre></div>
+<ul>
+<li>
+<code>subject_name</code> is the name of the subject.</li>
+<li>
+<code>faculty_name</code> is the full name of the faculty that
+teaches the subject.</li>
+<li>
+<code>faculty</code> is the abbreviated name of the faculty that
+teaches the subject.</li>
+<li>
+<code>school</code> is the school that teaches the subject.</li>
+</ul>
 </div>
 <div class="section level3">
 <h3 id="triggers">
 <code>triggers</code><a class="anchor" aria-label="anchor" href="#triggers"></a>
 </h3>
+<p>This table attempts to store data on the triggers used to flag
+‘at-risk’ students in several of the campaigns. It is one row per
+<code>offering</code> per <code>campaign</code> per
+<code>session</code>.</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">data.csu.retention</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/data.csu.retention/man/triggers.html" class="external-link">triggers</a></span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>offering <span class="op">=</span> <span class="st">"ABC123_201930_W_D"</span>, subject <span class="op">=</span> <span class="st">"ABC123"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Rows: 3,175</span></span>
+<span><span class="co">#&gt; Columns: 11</span></span>
+<span><span class="co">#&gt; $ offering           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "ABC123_201930_W_D", "ABC123_201930_W_D", "ABC123_2…</span></span>
+<span><span class="co">#&gt; $ campaign           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "pre census", "pre census", "pre census", "pre cens…</span></span>
+<span><span class="co">#&gt; $ trigger_date       <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span> NA, NA, 2019-03-29, NA, 2019-03-20, NA, 2019-03-22…</span></span>
+<span><span class="co">#&gt; $ subject            <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "ABC123", "ABC123", "ABC123", "ABC123", "ABC123", "…</span></span>
+<span><span class="co">#&gt; $ session            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 201930, 201930, 201930, 201930, 201930, 201930, 201…</span></span>
+<span><span class="co">#&gt; $ trigger            <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "course requirement", "non submission", "non submis…</span></span>
+<span><span class="co">#&gt; $ trigger_detail     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "did not attend res school", "did not submit, no i2…</span></span>
+<span><span class="co">#&gt; $ trigger_title      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,…</span></span>
+<span><span class="co">#&gt; $ trigger_notes      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> NA, NA, NA, NA, "EASTS", "Online", "EASTS", "EASTS"…</span></span>
+<span><span class="co">#&gt; $ value              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> NA, NA, 0.20, NA, 0.30, 0.10, 0.10, 0.20, 0.15, 0.1…</span></span>
+<span><span class="co">#&gt; $ imputed_from_flags <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FA…</span></span></code></pre></div>
+<ul>
+<li>
+<code>trigger_date</code> is the date that the trigger was
+instigated.</li>
+<li>
+<code>trigger</code> is the type of condition used to see if a
+student was at risk. The most common types in the pre census campaign
+are <em>low activity</em> for inactive use of the LMS and <em>non
+submission</em> for the non submission of an early assessment item.</li>
+<li>
+<code>trigger_detail</code> includes more detail on the trigger
+item, where available.</li>
+<li>
+<code>trigger_title</code> is the title of the assessment if
+used.</li>
+<li>
+<code>trigger_notes</code> outlines any additional information
+relevant to the trigger used.</li>
+<li>
+<code>value</code> is the % weighting of the assessment item, if
+that is what was used as a trigger.</li>
+<li>
+<code>imputed_from_flags</code> indicates if the trigger information
+was missing from the Retention Team’s campaign data, and was instead
+imputed from the flag list. This should not happen, but…we work with the
+data we have.</li>
+</ul>
 </div>
 </div>
 <div class="section level2">
@@ -518,11 +952,157 @@ in the <code>flags</code> table.</p>
 <h3 id="activity">
 <code>activity</code><a class="anchor" aria-label="anchor" href="#activity"></a>
 </h3>
+<p>This table is an aggregate of the trace data from the Learning
+Management System. It aggregates per student <code>id</code>, per day
+(<code>date</code>), per subject <code>offering</code> site.</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">data.csu.activity</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/data.csu.activity/man/activity.html" class="external-link">activity</a></span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"student_id"</span>, offering <span class="op">=</span> <span class="st">"ABC123_202290_W_D"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Rows: 10</span></span>
+<span><span class="co">#&gt; Columns: 6</span></span>
+<span><span class="co">#&gt; $ id       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "student_id", "student_id", "student_id", "student_id", "stud…</span></span>
+<span><span class="co">#&gt; $ offering <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "ABC123_202290_W_D", "ABC123_202290_W_D", "ABC123_202290_W_D"…</span></span>
+<span><span class="co">#&gt; $ date     <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2022-11-11, 2022-11-15, 2022-11-16, 2022-11-27, 2022-11-11, …</span></span>
+<span><span class="co">#&gt; $ logins   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 1, 1, 3, 1, 2, 1, 1, 1, 1, 1</span></span>
+<span><span class="co">#&gt; $ clicks   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 1, 3, 24, 6, 18, 2, 5, 3, 10, 4</span></span>
+<span><span class="co">#&gt; $ views    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 2, 5, 0, 7, 2, 4, 1, 3, 4</span></span></code></pre></div>
+<ul>
+<li>
+<code>date</code> is the day the data was aggregated. The day
+changes at midnight, so a student working late one night into the early
+hours of the next morning would spread that activity of two adjacent
+days.</li>
+<li>
+<code>logins</code> measures how many times the student logged into
+the subject site.<br>
+</li>
+<li>
+<code>clicks</code> indicates how many times the student clicked on
+anything in the subject site.</li>
+<li>
+<code>views</code> counts how many different pages (items) the
+student viewed in the subject site.</li>
+</ul>
+<div class="section level4">
+<h4 id="sql-for-activity-aggregation">SQL for activity aggregation<a class="anchor" aria-label="anchor" href="#sql-for-activity-aggregation"></a>
+</h4>
+<p>This query is run on the Blackboard DDA public schema table.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co">/* aa by-day */</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="kw">select</span> <span class="kw">id</span>                                                           <span class="kw">as</span> <span class="kw">id</span>,</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>       <span class="kw">replace</span>(<span class="fu">coalesce</span>(child_course_id, course_id), <span class="st">'S-'</span>, <span class="st">''</span>)      <span class="kw">as</span> offering,</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>       <span class="dt">date</span>                                                         <span class="kw">as</span> <span class="dt">date</span>,</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>       <span class="fu">count</span>(<span class="kw">distinct</span> session_id)                                   <span class="kw">as</span> logins,</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>       <span class="fu">count</span>(session_id)                                            <span class="kw">as</span> clicks,</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>       <span class="fu">count</span>(<span class="kw">distinct</span> content_pk1)                                  <span class="kw">as</span> views</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="kw">from</span> (<span class="kw">select</span> u.student_id                       <span class="kw">as</span> <span class="kw">id</span>,</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>             cm.course_id                       <span class="kw">as</span> course_id,</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>             cmchild.course_id                  <span class="kw">as</span> child_course_id,</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>             aa.session_id                      <span class="kw">as</span> session_id,</span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>             aa.<span class="dt">timestamp</span>:<span class="ch">:date</span>                 <span class="kw">as</span> <span class="dt">date</span>,</span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>             aa.content_pk1                     <span class="kw">as</span> content_pk1</span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>      <span class="kw">from</span> activity_accumulator aa</span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>               <span class="kw">inner</span> <span class="kw">join</span> users u <span class="kw">on</span> u.pk1 <span class="op">=</span> aa.user_pk1</span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>               <span class="kw">inner</span> <span class="kw">join</span> course_main cm <span class="kw">on</span> aa.course_pk1 <span class="op">=</span> cm.pk1</span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>               <span class="kw">inner</span> <span class="kw">join</span> course_users cu <span class="kw">on</span> cu.crsmain_pk1 <span class="op">=</span> cm.pk1 <span class="kw">and</span> u.pk1 <span class="op">=</span> cu.users_pk1</span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>               <span class="kw">left</span> <span class="kw">join</span> course_main cmchild <span class="kw">on</span> cmchild.pk1 <span class="op">=</span> cu.child_crsmain_pk1</span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>      <span class="kw">where</span> u.student_id <span class="kw">is</span> <span class="kw">not</span> <span class="kw">null</span></span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>        <span class="kw">and</span> cu.<span class="kw">role</span> <span class="op">=</span> <span class="st">'S'</span></span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>        <span class="kw">and</span> u.lastname <span class="kw">not</span> <span class="kw">like</span> <span class="st">'%PreviewUser'</span></span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a>        <span class="kw">and</span> aa.event_type <span class="op">!=</span> <span class="st">'SESSION_TIMEOUT'</span></span>
+<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a>        <span class="kw">and</span> cm.course_id similar <span class="kw">to</span> <span class="st">'S-%202290%'</span> </span>
+<span id="cb20-25"><a href="#cb20-25" aria-hidden="true" tabindex="-1"></a>        <span class="kw">and</span> aa.<span class="dt">timestamp</span>:<span class="ch">:date</span> <span class="op">&gt;=</span> make_date(<span class="dv">2023</span>, <span class="dv">2</span>, <span class="dv">1</span>) <span class="co">-- one month at a time</span></span>
+<span id="cb20-26"><a href="#cb20-26" aria-hidden="true" tabindex="-1"></a>        <span class="kw">and</span> aa.<span class="dt">timestamp</span>:<span class="ch">:date</span> <span class="op">&lt;</span> make_date(<span class="dv">2023</span>, <span class="dv">3</span>,  <span class="dv">1</span>)</span>
+<span id="cb20-27"><a href="#cb20-27" aria-hidden="true" tabindex="-1"></a>        ) <span class="kw">as</span> tab1</span>
+<span id="cb20-28"><a href="#cb20-28" aria-hidden="true" tabindex="-1"></a><span class="kw">group</span> <span class="kw">by</span> <span class="kw">id</span>, offering, <span class="dt">date</span>;</span></code></pre></div>
+</div>
 </div>
 </div>
 <div class="section level2">
 <h2 id="exit-survey-data-package-tables">Exit survey data package tables<a class="anchor" aria-label="anchor" href="#exit-survey-data-package-tables"></a>
 </h2>
+<div class="section level3">
+<h3 id="exit">
+<code>exit</code><a class="anchor" aria-label="anchor" href="#exit"></a>
+</h3>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">data.csu.exit</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/data.csu.exit/man/exit.html" class="external-link">exit</a></span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"student_id"</span>, name <span class="op">=</span> <span class="st">"name"</span>, other_info <span class="op">=</span> <span class="st">"other info"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Rows: 10</span></span>
+<span><span class="co">#&gt; Columns: 19</span></span>
+<span><span class="co">#&gt; $ id                          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "student_id", "student_id", "student_id", …</span></span>
+<span><span class="co">#&gt; $ name                        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "name", "name", "name", "name", "name", "n…</span></span>
+<span><span class="co">#&gt; $ date                        <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span> 2016-01-14 22:56:13, 2016-01-20 22:04:46,…</span></span>
+<span><span class="co">#&gt; $ program                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "3409BC", "1416SW", "4311HN", "9001YW", "4…</span></span>
+<span><span class="co">#&gt; $ faculty_program             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Faculty of Education", "Faculty of Arts",…</span></span>
+<span><span class="co">#&gt; $ study_mode                  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "I was a distance education student", "I w…</span></span>
+<span><span class="co">#&gt; $ future_study                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "I plan to return to the same course in th…</span></span>
+<span><span class="co">#&gt; $ contact_request             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Yes", NA, NA, NA, NA, "No", NA, "No", NA,…</span></span>
+<span><span class="co">#&gt; $ discuss_further             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA</span></span>
+<span><span class="co">#&gt; $ discuss_csu                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "No", "No", "No", "No", "No", "No", "No", …</span></span>
+<span><span class="co">#&gt; $ who_discuss_csu             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA</span></span>
+<span><span class="co">#&gt; $ discuss_outside             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "No", "Yes", "No", "Yes", "No", "Yes", "No…</span></span>
+<span><span class="co">#&gt; $ who_discuss_outside         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> NA, "Family (including partner, parents, e…</span></span>
+<span><span class="co">#&gt; $ withdraw_prior_commencement <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "No", "No", "Yes", "Yes", "Yes", "Yes", "Y…</span></span>
+<span><span class="co">#&gt; $ factors_not_to_commence     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> NA, NA, "I was offered a position at anoth…</span></span>
+<span><span class="co">#&gt; $ factors_leave               <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> NA, "Time - My family life doesn't leave m…</span></span>
+<span><span class="co">#&gt; $ factors_withdraw            <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Time - Time required to attend Residentia…</span></span>
+<span><span class="co">#&gt; $ factors                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Time - Time required to attend Residentia…</span></span>
+<span><span class="co">#&gt; $ other_info                  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "other info", "other info", "other info", …</span></span></code></pre></div>
+<ul>
+<li>
+<code>date</code> is the day the form was submitted.</li>
+<li>
+<code>program</code> is the course code (yes program of study and
+course are the same at Charles Sturt.)</li>
+<li>
+<code>faculty_program</code> is the faculty that runs the
+course.</li>
+<li>
+<code>study_mode</code> is the self reported mode of study.</li>
+<li>
+<code>contact_request</code> - did the student want to be contacted
+regarding their decision?</li>
+<li>
+<code>discuss_further</code> - only available in more recent
+surveys, answers the question <em>Are you willing to be contacted to
+discuss your CSU experience?</em>
+</li>
+<li>
+<code>discuss_csu</code> - did the student discuss their decision
+with anyone at CSU?</li>
+<li>
+<code>who_discuss_csu</code> - who did they discuss their decision
+with at CSU?</li>
+<li>
+<code>discuss_outside</code> - did the student discuss their
+decision with anyone outside of CSU?</li>
+<li>
+<code>who_discuss_outside</code> - who else did they discuss their
+decision with?</li>
+<li>
+<code>withdraw_prior_commencement</code> - did the student withdraw
+prior to commencing study?</li>
+<li>
+<code>factors_not_to_commence</code> - reasons for not commencing,
+selected from a drop down list.</li>
+<li>
+<code>factors_leave</code> - reasons for leaving, selected from a
+drop down list.</li>
+<li>
+<code>factors_withdraw</code> - reasons for withdrawing, selected
+from a drop down list.</li>
+<li>
+<code>factors</code> - all of the factors above, collected
+together.</li>
+<li>
+<code>other_info</code> contains free text comments.</li>
+</ul>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
