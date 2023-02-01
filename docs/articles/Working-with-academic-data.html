@@ -75,24 +75,7 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://benwhicks.github.io/retention.helpers/">retention.helpers</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org" class="external-link">tidyverse</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: package 'tidyverse' was built under R version 4.2.2</span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">Attaching packages</span> ─────────────────────────────────────── tidyverse 1.3.2 ──</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">ggplot2</span> 3.4.0      <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">purrr  </span> 1.0.0 </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">tibble </span> 3.1.8      <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">dplyr  </span> 1.0.10</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">tidyr  </span> 1.2.1      <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">stringr</span> 1.5.0 </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">readr  </span> 2.1.3      <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">forcats</span> 0.5.2</span></span>
-<span><span class="co">#&gt; Warning: package 'ggplot2' was built under R version 4.2.2</span></span>
-<span><span class="co">#&gt; Warning: package 'tibble' was built under R version 4.2.2</span></span>
-<span><span class="co">#&gt; Warning: package 'tidyr' was built under R version 4.2.2</span></span>
-<span><span class="co">#&gt; Warning: package 'readr' was built under R version 4.2.2</span></span>
-<span><span class="co">#&gt; Warning: package 'purrr' was built under R version 4.2.2</span></span>
-<span><span class="co">#&gt; Warning: package 'dplyr' was built under R version 4.2.2</span></span>
-<span><span class="co">#&gt; Warning: package 'stringr' was built under R version 4.2.2</span></span>
-<span><span class="co">#&gt; Warning: package 'forcats' was built under R version 4.2.2</span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">Conflicts</span> ────────────────────────────────────────── tidyverse_conflicts() ──</span></span>
-<span><span class="co">#&gt; <span style="color: #BB0000;">✖</span> <span style="color: #0000BB;">dplyr</span>::<span style="color: #00BB00;">filter()</span> masks <span style="color: #0000BB;">stats</span>::filter()</span></span>
-<span><span class="co">#&gt; <span style="color: #BB0000;">✖</span> <span style="color: #0000BB;">dplyr</span>::<span style="color: #00BB00;">lag()</span>    masks <span style="color: #0000BB;">stats</span>::lag()</span></span></code></pre></div>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org" class="external-link">tidyverse</a></span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="leveraging-the-grade-helper-functions">Leveraging the grade helper functions<a class="anchor" aria-label="anchor" href="#leveraging-the-grade-helper-functions"></a>
 </h2>
@@ -120,7 +103,8 @@ field:</p>
 identical. This is because sometimes we have used the term
 <em>Zero-fail</em> or <em>Non-Participating Enrolment</em> to indicate
 the same thing - a failing grade where the student also received a mark
-of 0 (FNS grade).</p>
+of 0 (FNS grade). To see how these are calculated refer to the table
+<code><a href="../reference/grade_classifications.html">retention.helpers::grade_classifications</a></code>.</p>
 <p>If you only want a particular field appended to the data frame use
 <code>add_grade_*</code> instead:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -138,14 +122,26 @@ of 0 (FNS grade).</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> GP    FALSE             FALSE        </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> ZZ    FALSE             FALSE</span></span></code></pre></div>
 <p>For instance, you might want to count the grade distribution of only
-substantive (finalised and counting towards progress)</p>
+substantive (finalised and counting towards progress):</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">some_sample_grades</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="../reference/add_grade_helpers.html">add_grade_helpers</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">grade_substantive</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html" class="external-link">count</a></span><span class="op">(</span><span class="va">grade</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 2</span></span></span>
+<span><span class="co">#&gt;   grade     n</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> FL        1</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> FNS       1</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> HD        1</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> PS        2</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="summarising-grade-data">Summarising grade data<a class="anchor" aria-label="anchor" href="#summarising-grade-data"></a>
 </h2>
 <p>The helpers can be used to calculate aggregates of grades, such as
 progress rates and GPA (using the <code>gpa</code> function).</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">some_sample_grades</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="../reference/add_grade_helpers.html">add_grade_helpers</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span></span>
@@ -161,17 +157,47 @@ progress rates and GPA (using the <code>gpa</code> function).</p>
 set of grades into two descriptions, <code>result</code> and
 <code>result_long</code>. This makes more sense to use with a grouped
 data frame.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
-<span>    student <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"B"</span>, <span class="st">"B"</span><span class="op">)</span>,</span>
-<span>    grade <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PS"</span>, <span class="st">"DI"</span>, <span class="st">"FNS"</span>, <span class="st">"FL"</span>, <span class="st">"PS"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    student <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"A"</span>, <span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"B"</span>, <span class="st">"B"</span><span class="op">)</span>,</span>
+<span>    grade <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PS"</span>, <span class="st">"DI"</span>, <span class="st">"GP"</span>, <span class="st">"FNS"</span>, <span class="st">"FL"</span>, <span class="st">"PS"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">student</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu"><a href="../reference/summarise_academic.html">summarise_academic</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 3</span></span></span>
 <span><span class="co">#&gt;   student result_long       result    </span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>     </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> A       Pass all          Pass      </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> B       Failing (some ZF) Partial ZF</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> B       Failing (some ZF) Partial ZF</span></span>
+<span></span>
+<span><span class="co"># additionally, there is an option to include the list of (substantive) grades</span></span>
+<span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
+<span>    student <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"A"</span>, <span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"B"</span>, <span class="st">"B"</span><span class="op">)</span>,</span>
+<span>    grade <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PS"</span>, <span class="st">"DI"</span>, <span class="st">"GP"</span>, <span class="st">"FNS"</span>, <span class="st">"FL"</span>, <span class="st">"PS"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">student</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="../reference/summarise_academic.html">summarise_academic</a></span><span class="op">(</span>include_grades <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 4</span></span></span>
+<span><span class="co">#&gt;   student grades      result_long       result    </span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> A       DI, PS      Pass all          Pass      </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> B       FL, FNS, PS Failing (some ZF) Partial ZF</span></span></code></pre></div>
+<p>Additional summary functions can be included, if used like a normal
+<code><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">dplyr::summarise</a></code> function. These can leverage any of the
+extra fields added from
+<code><a href="../reference/add_grade_helpers.html">retention.helpers::add_grade_helpers</a></code>.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
+<span>    student <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"A"</span>, <span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"B"</span>, <span class="st">"B"</span><span class="op">)</span>,</span>
+<span>    grade <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PS"</span>, <span class="st">"DI"</span>, <span class="st">"GP"</span>, <span class="st">"FNS"</span>, <span class="st">"FL"</span>, <span class="st">"PS"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">student</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="../reference/summarise_academic.html">summarise_academic</a></span><span class="op">(</span></span>
+<span>        n_substantive_grades <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">grade_substantive</span><span class="op">)</span>,</span>
+<span>        progress_rate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">grade_success</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">grade_substantive</span><span class="op">)</span></span>
+<span>    <span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 5</span></span></span>
+<span><span class="co">#&gt;   student result_long       result     n_substantive_grades progress_rate</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>                     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> A       Pass all          Pass                          2         1    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> B       Failing (some ZF) Partial ZF                    3         0.333</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>

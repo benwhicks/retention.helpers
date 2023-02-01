@@ -168,6 +168,8 @@ grade_classifications <- tibble::tribble(
   "ZZ",                 0L,             0L,         0L
 )
 
+usethis::use_data(grade_classifications, overwrite = TRUE)
+
 #' grade classifications
 #'
 #' What each of the grade codes count towards

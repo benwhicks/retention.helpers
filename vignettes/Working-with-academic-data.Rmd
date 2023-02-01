@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
+```{r setup, message=FALSE, warning=FALSE}
 library(retention.helpers)
 library(tidyverse)
 ```
@@ -31,7 +31,7 @@ some_sample_grades |>
     add_grade_helpers()
 ```
 
-Note that `grade_zf` and `grade_npe` are identical. This is because sometimes we have used the term *Zero-fail* or *Non-Participating Enrolment* to indicate the same thing - a failing grade where the student also received a mark of 0 (FNS grade).
+Note that `grade_zf` and `grade_npe` are identical. This is because sometimes we have used the term *Zero-fail* or *Non-Participating Enrolment* to indicate the same thing - a failing grade where the student also received a mark of 0 (FNS grade). To see how these are calculated refer to the table `retention.helpers::grade_classifications`.
 
 If you only want a particular field appended to the data frame use `add_grade_*` instead:
 
@@ -41,7 +41,14 @@ some_sample_grades |>
     add_grade_success()
 ```
 
-For instance, you might want to count the grade distribution of only substantive (finalised and counting towards progress)
+For instance, you might want to count the grade distribution of only substantive (finalised and counting towards progress):
+
+``` {r}
+some_sample_grades |> 
+    add_grade_helpers() |> 
+    filter(grade_substantive) |> 
+    count(grade)
+```
 
 ## Summarising grade data
 
@@ -60,9 +67,31 @@ Additionally, there is a function `retention.helpers::summarise_academic()` that
 
 ``` {r}
 tibble(
-    student = c("A", "A", "B", "B", "B"),
-    grade = c("PS", "DI", "FNS", "FL", "PS")) |> 
+    student = c("A", "A", "A", "B", "B", "B"),
+    grade = c("PS", "DI", "GP", "FNS", "FL", "PS")) |> 
     group_by(student) |> 
     summarise_academic()
+
+# additionally, there is an option to include the list of (substantive) grades
+tibble(
+    student = c("A", "A", "A", "B", "B", "B"),
+    grade = c("PS", "DI", "GP", "FNS", "FL", "PS")) |> 
+    group_by(student) |> 
+    summarise_academic(include_grades = TRUE)
 ```
+
+Additional summary functions can be included, if used like a normal `dplyr::summarise` function. These can leverage any of the extra fields added from `retention.helpers::add_grade_helpers`.
+
+``` {r}
+tibble(
+    student = c("A", "A", "A", "B", "B", "B"),
+    grade = c("PS", "DI", "GP", "FNS", "FL", "PS")) |> 
+    group_by(student) |> 
+    summarise_academic(
+        n_substantive_grades = sum(grade_substantive),
+        progress_rate = sum(grade_success) / sum(grade_substantive)
+    )
+```
+
+
 
